@@ -8,7 +8,7 @@ Balances, deposits and winnings are encrypted end to end using fully homomorphic
 
 | | |
 |---|---|
-| **Program** | Zama Developer Program, Mainnet Season 4, Bounty Track |
+| **Program** | [Zama Developer Program, Mainnet Season 4](https://www.zama.org/post/zama-developer-program-mainnet-season-4), Bounty Track |
 | **Submission deadline** | 5 September 2026, 23:59 AOE |
 | **Target network** | Ethereum Sepolia |
 | **Status** | In development — see [Implementation Plan](docs/implementation-plan.md) |
