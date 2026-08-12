@@ -15,6 +15,43 @@ function maskedString(length: number) {
   return Array.from({ length }, randomChar).join("");
 }
 
+function hashString(str: string) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/** Mulberry32 — small, fast, deterministic PRNG. All ops are 32-bit safe via Math.imul. */
+function mulberry32(seed: number) {
+  let a = seed;
+  return function () {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * A masked string derived only from `value` — same output on the server and
+ * during the client's first (hydration) render, unlike `maskedString`, which
+ * calls `Math.random()` and would render differently on each side. Used only
+ * for the initial paint; the idle shimmer switches to real randomness once
+ * mounted, when there's no hydration pass left to mismatch.
+ */
+function deterministicMask(value: string) {
+  const rand = mulberry32(hashString(value) || 1);
+  let out = "";
+  for (let i = 0; i < value.length; i++) {
+    out += SCRAMBLE_CHARS[Math.floor(rand() * SCRAMBLE_CHARS.length)];
+  }
+  return out;
+}
+
 function prefersReducedMotion() {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -44,7 +81,7 @@ export function CiphertextReveal({
   interactive = true,
 }: CiphertextRevealProps) {
   const [revealed, setRevealed] = useState(false);
-  const [display, setDisplay] = useState(() => maskedString(value.length));
+  const [display, setDisplay] = useState(() => deterministicMask(value));
   const frameRef = useRef<number | null>(null);
 
   useEffect(() => {
