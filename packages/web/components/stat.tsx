@@ -7,16 +7,19 @@ interface StatProps {
   value: ReactNode;
   sublabel?: string;
   className?: string;
-  tone?: "ink" | "white";
+  /** "onPrimary" for use inside a bg-primary panel, where text must pair with primary-foreground. */
+  tone?: "default" | "onPrimary";
 }
 
-export function Stat({ label, value, sublabel, className, tone = "ink" }: StatProps) {
+export function Stat({ label, value, sublabel, className, tone = "default" }: StatProps) {
+  const isOnPrimary = tone === "onPrimary";
+
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
       <span
         className={cn(
           "text-xs uppercase tracking-[0.08em]",
-          tone === "white" ? "text-white/70" : "text-mute",
+          isOnPrimary ? "text-primary-foreground/70" : "text-muted-foreground",
         )}
       >
         {label}
@@ -24,7 +27,7 @@ export function Stat({ label, value, sublabel, className, tone = "ink" }: StatPr
       <span
         className={cn(
           "tabular font-mono text-3xl font-semibold leading-none tracking-[-0.02em] sm:text-4xl",
-          tone === "white" ? "text-white" : "text-ink",
+          isOnPrimary ? "text-primary-foreground" : "text-foreground",
         )}
       >
         {value}
@@ -33,7 +36,7 @@ export function Stat({ label, value, sublabel, className, tone = "ink" }: StatPr
         <span
           className={cn(
             "text-sm",
-            tone === "white" ? "text-white/70" : "text-mute",
+            isOnPrimary ? "text-primary-foreground/70" : "text-muted-foreground",
           )}
         >
           {sublabel}

@@ -91,3 +91,7 @@ desktop.ini
 *.key
 mnemonic.txt
 /docs
+
+
+.codex
+.claude

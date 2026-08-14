@@ -24,7 +24,7 @@ function hashString(str: string) {
   return h >>> 0;
 }
 
-/** Mulberry32 — small, fast, deterministic PRNG. All ops are 32-bit safe via Math.imul. */
+/** Mulberry32: small, fast, deterministic PRNG. All ops are 32-bit safe via Math.imul. */
 function mulberry32(seed: number) {
   let a = seed;
   return function () {
@@ -37,7 +37,7 @@ function mulberry32(seed: number) {
 }
 
 /**
- * A masked string derived only from `value` — same output on the server and
+ * A masked string derived only from `value`: same output on the server and
  * during the client's first (hydration) render, unlike `maskedString`, which
  * calls `Math.random()` and would render differently on each side. Used only
  * for the initial paint; the idle shimmer switches to real randomness once
@@ -69,7 +69,7 @@ interface CiphertextRevealProps {
   label?: string;
   className?: string;
   size?: keyof typeof SIZE_CLASSES;
-  /** Static masked display with no reveal control — used for "someone else's" balance. */
+  /** Static masked display with no reveal control, used for "someone else's" balance. */
   interactive?: boolean;
 }
 
@@ -134,7 +134,7 @@ export function CiphertextReveal({
     <div className={cn("inline-flex items-end gap-3", className)}>
       <div className="flex flex-col gap-1">
         {label ? (
-          <span className="text-xs uppercase tracking-[0.08em] text-mute">
+          <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
             {label}
           </span>
         ) : null}
@@ -143,7 +143,7 @@ export function CiphertextReveal({
           className={cn(
             "tabular font-mono leading-none tracking-[-0.01em]",
             SIZE_CLASSES[size],
-            revealed ? "text-ink" : "text-mute",
+            revealed ? "text-foreground" : "text-muted-foreground",
           )}
         >
           {display}
@@ -159,7 +159,12 @@ export function CiphertextReveal({
           type="button"
           onClick={reveal}
           aria-pressed={revealed}
-          className="mb-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-sm border border-line text-ink transition-colors hover:border-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink"
+          className={cn(
+            "mb-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+            revealed
+              ? "border-brand text-brand"
+              : "border-border text-foreground hover:border-brand hover:text-brand",
+          )}
         >
           {revealed ? (
             <EyeOff className="h-4 w-4" strokeWidth={1.75} />

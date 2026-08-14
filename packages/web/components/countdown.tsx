@@ -36,7 +36,7 @@ function useNow(): number | null {
 /**
  * Resolves a stable target timestamp the first time it's read on the client.
  * Modeled as its own tiny external store (rather than a ref written during
- * render) so it stays legal under strict render-purity lint rules — a store
+ * render) so it stays legal under strict render-purity lint rules: a store
  * is explicitly the sanctioned place to cache external, non-React state.
  */
 function createTargetStore(target: Date | undefined, offsetMs: number | undefined) {
@@ -102,17 +102,17 @@ export function Countdown({
       role="timer"
       aria-live="off"
       className={cn(
-        "tabular font-mono leading-none tracking-[-0.01em] text-ink",
+        "tabular font-mono leading-none tracking-[-0.01em] text-foreground",
         SIZE_CLASSES[size],
         !ready && "invisible",
         className,
       )}
     >
       {pad(parts.days)}
-      <span className="text-mute">d</span> {pad(parts.hours)}
-      <span className="text-mute">h</span> {pad(parts.minutes)}
-      <span className="text-mute">m</span> {pad(parts.seconds)}
-      <span className="text-mute">s</span>
+      <span className="text-muted-foreground">d</span> {pad(parts.hours)}
+      <span className="text-muted-foreground">h</span> {pad(parts.minutes)}
+      <span className="text-muted-foreground">m</span> {pad(parts.seconds)}
+      <span className="text-muted-foreground">s</span>
     </div>
   );
 }
