@@ -1,42 +1,82 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Inter as FontSans } from "next/font/google";
 import localFont from "next/font/local";
-
+import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { siteConfig } from "@/config/site";
 
 import "./globals.css";
 
-const inter = Inter({
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "black" },
+  ],
+};
+
+const fontSans = FontSans({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-sans",
 });
 
-const calsans = localFont({
+const fontHeading = localFont({
   src: "../assets/fonts/CalSans-SemiBold.woff2",
-  variable: "--font-calsans",
+  variable: "--font-heading",
   weight: "600",
 });
 
-const notoMono = localFont({
+const fontMono = localFont({
   src: "../assets/fonts/NotoSansMono-VariableFont_wdth,wght.ttf",
-  variable: "--font-noto-mono",
+  variable: "--font-mono",
 });
 
 export const metadata: Metadata = {
-  title: "Sortis: a confidential prize savings protocol",
-  description:
-    "Deposit a confidential token, keep your principal, and let the pool's yield fund one encrypted prize draw per round. Built on the Zama Protocol with fully homomorphic encryption.",
+  title: {
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  keywords: [
+    "Sortis",
+    "Zama",
+    "FHE",
+    "confidential savings",
+    "prize savings",
+    "ERC-7984",
+  ],
+  authors: [{ name: "Sortis" }],
+  creator: "Sortis",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: siteConfig.url,
+    title: siteConfig.name,
+    description: siteConfig.description,
+    siteName: siteConfig.name,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteConfig.name,
+    description: siteConfig.description,
+  },
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`h-full antialiased ${inter.variable} ${calsans.variable} ${notoMono.variable}`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-full flex flex-col bg-background font-sans text-foreground">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body
+        className={cn(
+          "min-h-screen bg-background font-sans antialiased",
+          fontSans.variable,
+          fontHeading.variable,
+          fontMono.variable,
+        )}
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
       </body>

@@ -19,17 +19,45 @@ function partsUntil(target: number, now: number) {
   };
 }
 
-function subscribeToClock(callback: () => void) {
-  const id = setInterval(callback, 1000);
-  return () => clearInterval(id);
+/**
+ * Shared one-second clock. getSnapshot must return a cached value: React 19
+ * calls it twice and loops if Date.now() changes between those reads.
+ */
+let cachedNow = Date.now();
+const clockListeners = new Set<() => void>();
+let clockInterval: ReturnType<typeof setInterval> | null = null;
+
+function subscribeToClock(onStoreChange: () => void) {
+  clockListeners.add(onStoreChange);
+  if (clockInterval === null) {
+    clockInterval = setInterval(() => {
+      cachedNow = Date.now();
+      clockListeners.forEach((listener) => listener());
+    }, 1000);
+  }
+  return () => {
+    clockListeners.delete(onStoreChange);
+    if (clockListeners.size === 0 && clockInterval !== null) {
+      clearInterval(clockInterval);
+      clockInterval = null;
+    }
+  };
+}
+
+function getNowSnapshot() {
+  return cachedNow;
+}
+
+function getServerNowSnapshot() {
+  return null;
 }
 
 /** Ticks once a second on the client; null during SSR and before hydration. */
 function useNow(): number | null {
   return useSyncExternalStore(
     subscribeToClock,
-    () => Date.now(),
-    () => null,
+    getNowSnapshot,
+    getServerNowSnapshot,
   );
 }
 
