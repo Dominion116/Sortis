@@ -11,17 +11,23 @@ export default function Problem() {
           The problem
         </h2>
         <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          No-loss prize pools already exist onchain. The mechanism works. It
-          just publishes every balance, every payout, forever on a block explorer.
+          No-loss prize pools already exist onchain and the mechanism behind
+          them is sound. The difficulty is that everything they touch becomes a
+          matter of public record, so anyone who knows your address can read
+          how much you have saved, how your odds compare to everyone else&apos;s,
+          and exactly what you won or failed to win, for as long as the chain
+          exists.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 md:max-w-[64rem] md:grid-cols-2">
         <div className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950">
-          <h3 className="mb-1 text-lg font-medium text-gray-900 dark:text-gray-100">
+          <h3 className="mb-1 text-lg font-medium text-foreground">
             {MOCK.problemComparison.publicPoolName}
           </h3>
-          <p className="mb-6 text-sm font-normal text-gray-500">
-            Illustrative reconstruction of public block-explorer data, not a live screenshot.
+          <p className="mb-6 text-sm font-normal text-muted-foreground">
+            This is an illustrative reconstruction of the kind of data a block
+            explorer already exposes today, rather than a live screenshot of any
+            particular protocol.
           </p>
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -43,11 +49,12 @@ export default function Problem() {
           </table>
         </div>
         <div className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950">
-          <h3 className="mb-1 text-lg font-medium text-gray-900 dark:text-gray-100">
+          <h3 className="mb-1 text-lg font-medium text-foreground">
             Sortis
           </h3>
-          <p className="mb-6 text-sm font-normal text-gray-500">
-            Same shared pool. Balances and odds never leave ciphertext.
+          <p className="mb-6 text-sm font-normal text-muted-foreground">
+            The same shared pool, with the same participants and the same
+            mechanism, except that balances and odds never leave ciphertext.
           </p>
           <table className="w-full border-collapse text-sm">
             <thead>

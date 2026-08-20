@@ -14,8 +14,9 @@ export default function FAQSection() {
     <section id="faq" className="mx-auto mb-12 max-w-3xl p-6">
       <div className="mb-8 text-center">
         <h2 className="text-2xl font-bold">FAQ</h2>
-        <p className="text-muted-foreground">
-          Questions a skeptical saver would ask.
+        <p className="mx-auto max-w-[60ch] text-muted-foreground">
+          The questions a careful saver would want answered before putting
+          anything in.
         </p>
       </div>
       <div className="space-y-4">
@@ -36,13 +37,20 @@ export default function FAQSection() {
                 }`}
               />
             </button>
+            {/*
+              Animating grid rows from 0fr to 1fr resolves to the answer's real
+              height, so a long answer cannot be clipped the way a fixed max
+              height would clip it.
+            */}
             <div
-              className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                activeItem === index ? "max-h-96" : "max-h-0"
+              className={`grid transition-all duration-300 ease-in-out ${
+                activeItem === index ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
               }`}
             >
-              <div className="border-t border-zinc-200 p-4 text-sm dark:border-zinc-800">
-                <p>{item.answer}</p>
+              <div className="overflow-hidden">
+                <div className="border-t border-zinc-200 p-4 text-sm leading-relaxed dark:border-zinc-800">
+                  <p>{item.answer}</p>
+                </div>
               </div>
             </div>
           </div>

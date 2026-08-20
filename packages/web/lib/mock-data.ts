@@ -26,15 +26,6 @@ export const MOCK = {
   },
   repoUrl: "https://github.com/Dominion116/sortis",
 
-  poweredBy: [
-    "Zama Protocol",
-    "ERC-7984",
-    "OpenZeppelin",
-    "Ethereum Sepolia",
-    "Hardhat",
-    "Next.js",
-  ],
-
   problemComparison: {
     publicPoolName: "a typical onchain prize pool",
     rows: [
@@ -44,31 +35,4 @@ export const MOCK = {
       { address: "0x3aF8...e630", balance: "3,204.50", odds: "1 in 344" },
     ],
   },
-
-  faq: [
-    {
-      q: "What actually stays private?",
-      a: "Your deposit amount, your balance, and your odds of winning. They're encrypted end to end with fully homomorphic encryption, so the contract itself never sees them in the clear, not even during the draw.",
-    },
-    {
-      q: "What stays public?",
-      a: "The total value locked in the pool, and the outcome of each draw once it settles. That's the same information any pooled savings product already discloses. Sortis just stops there instead of also publishing who has what.",
-    },
-    {
-      q: "Can I lose my deposit?",
-      a: "No. Principal is withdrawable at any time, including mid-round. The only thing at stake each round is the yield you'd otherwise have earned, and that's what funds the prize.",
-    },
-    {
-      q: "How is a winner chosen without decrypting anyone's balance?",
-      a: "The contract draws a random value onchain and walks the encrypted ticket list comparing ciphertext ranges, never plaintext balances. Every participant's storage slot is written on every draw, winners and losers alike, so the state diff itself reveals nothing.",
-    },
-    {
-      q: "What happens if the winning ticket was withdrawn mid-round?",
-      a: "No prize is credited and it rolls into the next round. This is the same rollover behavior Premium Bonds has used since 1957. It isn't a bug case, it's a documented, tested outcome.",
-    },
-    {
-      q: "Is the yield on this testnet real?",
-      a: "No, Sepolia has no real yield source, and we say so everywhere a prize figure appears. It's clearly labeled simulated testnet yield. The production path, MorphoYieldSource, targets a real confidential vault on Morpho and is written but not deployed.",
-    },
-  ],
 } as const;

@@ -31,6 +31,7 @@ const fontMono = localFont({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: siteConfig.name,
     template: `%s | ${siteConfig.name}`,
@@ -59,9 +60,6 @@ export const metadata: Metadata = {
     title: siteConfig.name,
     description: siteConfig.description,
   },
-  icons: {
-    icon: "/favicon.ico",
-  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -70,7 +68,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head />
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          // The Hikari template sets its body copy in monospace and reserves
+          // CalSans for display headings. That contrast is the template's
+          // signature, so Sortis keeps it, using Noto Sans Mono as the face.
+          "min-h-screen bg-background font-mono antialiased",
           fontSans.variable,
           fontHeading.variable,
           fontMono.variable,

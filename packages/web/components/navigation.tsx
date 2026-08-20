@@ -23,7 +23,7 @@ export default function CircularNavigation({
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
 
   return (
-    <nav className="relative mx-auto mt-4 flex w-full flex-wrap items-center justify-between gap-4 p-2 backdrop-blur-sm md:w-fit md:gap-20 md:rounded-full md:border-2 md:border-muted/30 md:bg-zinc-50 md:p-1 md:px-8 md:shadow-md md:backdrop-blur-none md:dark:border-muted/80 md:dark:bg-zinc-900">
+    <nav className="relative mx-auto mt-4 flex w-full flex-wrap items-center justify-between gap-4 p-2 backdrop-blur-sm md:w-fit md:gap-20 md:rounded-full md:border-2 md:border-border md:bg-zinc-50 md:p-1 md:px-8 md:shadow-md md:backdrop-blur-none md:dark:border-muted/80 md:dark:bg-zinc-900">
       <Link href="/" className="flex items-center space-x-2">
         <div className="rounded-full bg-slate-50 p-1 dark:bg-slate-900">
           <SunIcon className="size-8 transition-transform duration-300 ease-in-out hover:scale-110" />
@@ -73,7 +73,9 @@ export default function CircularNavigation({
       </div>
       {showMobileMenu && items ? (
         <div className="absolute top-full right-0 left-0 mt-2 w-full md:hidden">
-          <MobileNav items={items}>{children}</MobileNav>
+          <MobileNav items={items} onNavigate={() => setShowMobileMenu(false)}>
+            {children}
+          </MobileNav>
         </div>
       ) : null}
     </nav>

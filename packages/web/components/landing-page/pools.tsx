@@ -14,21 +14,20 @@ import { pools } from "@/config/pools";
 
 export default function Pools() {
   return (
-    <section className="container mx-auto" id="pricing">
+    <section className="container mx-auto" id="pools">
       <div className="flex min-h-0 w-full flex-col items-center justify-center py-10">
         <h1 className="text-center text-3xl font-bold">
-          No lockup. No management fee. Principal is always yours.
+          Three ways in, running the same encrypted draw
         </h1>
-        <p className="mt-2 text-center text-muted-foreground">
-          The only thing at stake each round is the yield the pool would
-          otherwise have paid you.
+        <p className="mt-2 max-w-[68ch] text-center text-muted-foreground">
+          The pools differ only in how long a round lasts and how you get hold
+          of the tokens to enter one. The contract underneath them, and the way
+          it picks a winner without reading anybody&apos;s balance, is identical
+          in every case.
         </p>
         <div className="mt-10 grid gap-6 md:grid-cols-3">
           {pools.map((pool) => (
-            <Card
-              key={pool.id}
-              className="w-full max-w-sm rounded-4xl border-2 bg-white text-black"
-            >
+            <Card key={pool.id} className="w-full max-w-sm rounded-4xl border-2">
               <CardHeader className="flex flex-col justify-center rounded-t-4xl">
                 <div className="flex items-center">
                   <Moon className="h-8 w-8 fill-zinc-500 text-gray-600" />
@@ -41,14 +40,20 @@ export default function Pools() {
                 <div className="py-8 font-heading text-4xl font-bold">
                   {pool.headline}
                 </div>
-                <p className="mt-2 text-muted-foreground">{pool.description}</p>
-                <Button asChild variant="default" className="mt-4 w-full rounded-4xl">
+                <p className="mt-2 leading-relaxed text-muted-foreground">
+                  {pool.description}
+                </p>
+                <Button
+                  asChild
+                  variant="default"
+                  className="mt-4 w-full rounded-4xl"
+                >
                   <Link href={pool.href}>{pool.cta}</Link>
                 </Button>
                 <ul className="mt-4 space-y-2">
                   {pool.features.map((feature) => (
-                    <li key={feature} className="flex items-center space-x-2">
-                      <CheckIcon className="text-blue-500" />
+                    <li key={feature} className="flex items-start space-x-2">
+                      <CheckIcon className="mt-0.5 size-5 shrink-0 text-brand" />
                       <span>{feature}</span>
                     </li>
                   ))}

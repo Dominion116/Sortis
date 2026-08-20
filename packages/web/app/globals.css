@@ -233,6 +233,19 @@ html {
   font-feature-settings: "tnum" 1;
 }
 
+/* Hikari's logo cloud, which fades its row out toward both edges. */
+.logo-cloud-container {
+  overflow: hidden;
+  position: relative;
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    hsl(var(--background)) 30%,
+    hsl(var(--background)) 70%,
+    transparent 100%
+  );
+}
+
 .size-full {
   width: 100%;
   height: auto;

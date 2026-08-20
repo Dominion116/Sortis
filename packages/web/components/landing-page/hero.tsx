@@ -10,37 +10,15 @@ import Ripple from "@/components/magicui/ripple";
 import AnimatedGradientText from "@/components/magicui/animated-shiny-text";
 import { ArrowRightIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
 import { CiphertextReveal } from "@/components/ciphertext-reveal";
 import { Countdown } from "@/components/countdown";
 import { Stat } from "@/components/stat";
-
-function subscribeToMotionPreference(onChange: () => void) {
-  const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-  media.addEventListener("change", onChange);
-  return () => media.removeEventListener("change", onChange);
-}
-
-function usePrefersReducedMotion() {
-  return useSyncExternalStore(
-    subscribeToMotionPreference,
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    () => false,
-  );
-}
-
-function useHasMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
+import { useHasMounted, useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export default function HeroSection() {
   const { resolvedTheme } = useTheme();
   const mounted = useHasMounted();
-  const reduceMotion = usePrefersReducedMotion();
+  const reduceMotion = useReducedMotion();
 
   const particleColor = resolvedTheme === "dark" ? "#FFFFFF" : "#000000";
 
@@ -65,7 +43,7 @@ export default function HeroSection() {
           <Link href={siteConfig.links.zama} target="_blank" rel="noreferrer" className="w-fit">
             <div
               className={cn(
-                "group rounded-full border border-black/5 bg-neutral-100 text-base text-secondary transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800",
+                "group rounded-full border border-black/5 bg-neutral-100 text-base text-foreground transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800",
               )}
             >
               <AnimatedGradientText className="inline-flex items-center justify-center px-4 py-2 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
@@ -82,12 +60,16 @@ export default function HeroSection() {
           </Link>
 
           <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
-            Save together. One winner takes the yield. Nobody sees who has what.
+            Everyone saves together, one person wins the yield, and nobody can
+            see who holds what.
           </h1>
           <div className="max-w-[42rem] rounded-full p-2 text-primary tracking-tight sm:text-xl sm:leading-8">
-            Sortis is a no-loss prize savings pool on the Zama Protocol.
-            Deposit a confidential token, keep your principal, and let the
-            pool&apos;s yield fund one encrypted prize draw per round.
+            Sortis is a no-loss prize savings pool built on the Zama Protocol.
+            You deposit a confidential token and your principal remains yours to
+            withdraw at any moment, while the interest the pool earns is pooled
+            into a single prize that one saver wins each round. Every balance
+            stays encrypted from the moment you deposit, including throughout
+            the draw itself.
           </div>
           <div className="flex flex-wrap justify-center gap-4">
             <Link

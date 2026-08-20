@@ -11,8 +11,10 @@ export default function DrawLive() {
           The draw, live
         </h2>
         <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          A round is always about to resolve. The demo pool runs continuously
-          so there is always a draw within reach, whatever minute you arrived.
+          There is always a round on the way to resolving. The demo pool closes
+          and settles continuously, which means that whenever you happen to
+          arrive, you are never more than a few minutes away from watching a
+          complete draw run from start to finish.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 md:max-w-[64rem] md:grid-cols-2">
@@ -21,9 +23,10 @@ export default function DrawLive() {
             Next draw in
           </span>
           <Countdown offsetMs={MOCK.nextDrawOffsetMs} size="lg" className="mt-3" />
-          <p className="mt-4 max-w-[38ch] text-sm leading-relaxed text-muted-foreground">
-            Illustrative countdown until contracts deploy. The live demo pool
-            will close every five minutes.
+          <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-muted-foreground">
+            This countdown is illustrative until the contracts are deployed.
+            Once they are live, the demo pool will close a round every five
+            minutes and this clock will track it directly.
           </p>
         </div>
         <div className="relative overflow-hidden rounded-lg border bg-background p-8 dark:bg-zinc-950">
@@ -42,9 +45,9 @@ export default function DrawLive() {
               {lastRound.txHash.slice(0, 10)}...{lastRound.txHash.slice(-6)}
             </dd>
           </dl>
-          <p className="mt-6 text-xs text-muted-foreground">
-            Illustrative round data. Live Etherscan links go up once the
-            contracts deploy to Sepolia.
+          <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
+            This round is illustrative. The transaction hash becomes a working
+            Etherscan link as soon as the contracts are deployed to Sepolia.
           </p>
         </div>
       </div>

@@ -2,22 +2,23 @@
 
 import { motion } from "framer-motion";
 import { CiphertextReveal } from "@/components/ciphertext-reveal";
+import { MOCK } from "@/lib/mock-data";
 
 const BEATS = [
   {
     index: "01",
-    title: "Deposit encrypts",
-    body: "The amount you deposit is encrypted in your browser before it ever reaches the contract. The chain only ever sees ciphertext.",
+    title: "Your deposit is encrypted before it leaves your browser",
+    body: "You choose an amount and your browser encrypts it locally, producing a sealed value and a proof that the value is well formed. The contract accepts both and records a ticket it can compute against but never read.",
   },
   {
     index: "02",
-    title: "The pool earns",
-    body: "Idle funds route to a yield source. Interest accrues to the shared pool. That part is public, the same as any savings product.",
+    title: "The pool earns interest as a single balance",
+    body: "Funds sitting in the pool are routed to a yield source, and the interest accumulates against the pool as a whole rather than against any one saver. This total is public on purpose, because it is the prize everyone is playing for.",
   },
   {
     index: "03",
-    title: "The draw runs over ciphertext",
-    body: "At round close, the contract sweeps every encrypted ticket to find a winner without ever decrypting who holds what. Only the winner can decrypt their prize.",
+    title: "The winner is chosen without decrypting anyone",
+    body: "When the round closes, the contract draws a random value and walks the encrypted ticket list to find which ticket that value falls inside. It never learns whose ticket it landed on, and only the winner holds the key to decrypt what they won.",
   },
 ] as const;
 
@@ -25,15 +26,17 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="container mb-10 space-y-6 rounded-6xl bg-zinc-50 py-8 dark:bg-zinc-900 md:py-12 lg:py-24"
+      className="container mb-10 space-y-6 rounded-6xl bg-zinc-100 py-8 dark:bg-zinc-900 md:py-12 lg:py-24"
     >
       <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
         <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
           How it works
         </h2>
         <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          Three beats. The last one is the hard part: selecting a winner
-          weighted by encrypted balances without decrypting anything.
+          The whole protocol comes down to three steps, and the third is where
+          the genuinely difficult engineering lives. Choosing a winner weighted
+          by everyone&apos;s balance, while none of those balances can be read,
+          is the problem Sortis exists to solve.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
@@ -44,11 +47,11 @@ export default function HowItWorks() {
             key={beat.index}
             className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950"
           >
-            <div className="mb-2 font-mono text-sm text-gray-500">{beat.index}</div>
-            <div className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-100">
+            <div className="mb-2 font-mono text-sm text-muted-foreground">{beat.index}</div>
+            <div className="mb-2 text-lg font-medium text-foreground">
               {beat.title}
             </div>
-            <div className="mb-6 text-sm font-normal text-gray-500">{beat.body}</div>
+            <div className="mb-6 text-sm font-normal text-muted-foreground">{beat.body}</div>
             {beat.index === "01" ? (
               <CiphertextReveal value="1,000.00 cUSDT" size="sm" interactive={false} />
             ) : null}
@@ -58,7 +61,7 @@ export default function HowItWorks() {
                   Pool yield, this round
                 </span>
                 <span className="tabular font-mono text-2xl font-semibold tracking-tight text-foreground">
-                  38.14 cUSDT
+                  {MOCK.lastRound.prize}
                 </span>
               </div>
             ) : null}

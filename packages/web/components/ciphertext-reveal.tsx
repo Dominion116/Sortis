@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { cn } from "@/lib/utils";
 
 const SCRAMBLE_CHARS = "0123456789ABCDEF";
@@ -52,11 +53,6 @@ function deterministicMask(value: string) {
   return out;
 }
 
-function prefersReducedMotion() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-}
-
 const SIZE_CLASSES = {
   sm: "text-sm sm:text-base",
   md: "text-2xl sm:text-3xl",
@@ -83,12 +79,14 @@ export function CiphertextReveal({
   const [revealed, setRevealed] = useState(false);
   const [display, setDisplay] = useState(() => deterministicMask(value));
   const frameRef = useRef<number | null>(null);
+  const reduceMotion = useReducedMotion();
 
+  // The idle shimmer is decorative, so it stays still under reduced motion.
   useEffect(() => {
-    if (revealed) return;
+    if (revealed || reduceMotion) return;
     const id = setInterval(() => setDisplay(maskedString(value.length)), 2200);
     return () => clearInterval(id);
-  }, [revealed, value.length]);
+  }, [revealed, reduceMotion, value.length]);
 
   useEffect(() => {
     return () => {
@@ -99,11 +97,15 @@ export function CiphertextReveal({
   function reveal() {
     if (revealed) {
       setRevealed(false);
+      // Re-mask here rather than leaving it to the shimmer interval, which
+      // never runs under reduced motion and would strand the plaintext.
+      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      setDisplay(maskedString(value.length));
       return;
     }
     setRevealed(true);
 
-    if (prefersReducedMotion()) {
+    if (reduceMotion) {
       setDisplay(value);
       return;
     }

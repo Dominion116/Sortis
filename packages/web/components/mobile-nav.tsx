@@ -7,14 +7,19 @@ import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useLockBody } from "@/hooks/use-lock-body";
 import { siteConfig } from "@/config/site";
 
 interface MobileNavProps {
   items: MainNavItem[];
   children?: React.ReactNode;
+  /** Closes the menu once a link is taken, so the panel never covers the target. */
+  onNavigate?: () => void;
 }
 
-export function MobileNav({ items, children }: MobileNavProps) {
+export function MobileNav({ items, children, onNavigate }: MobileNavProps) {
+  useLockBody();
+
   return (
     <div
       className={cn(
@@ -22,7 +27,7 @@ export function MobileNav({ items, children }: MobileNavProps) {
       )}
     >
       <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
-        <Link href="/" className="flex items-center space-x-2">
+        <Link href="/" className="flex items-center space-x-2" onClick={onNavigate}>
           <Icons.Eclipse />
           <span className="font-heading font-bold">
             Sortis<span className="text-brand">.</span>
@@ -33,6 +38,7 @@ export function MobileNav({ items, children }: MobileNavProps) {
             <Link
               key={index}
               href={item.disabled ? "#" : item.href}
+              onClick={onNavigate}
               className={cn(
                 "flex w-full items-center rounded-md p-2 text-sm font-medium hover:underline",
                 item.disabled && "cursor-not-allowed opacity-60",

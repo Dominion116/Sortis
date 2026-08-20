@@ -2,9 +2,15 @@ import { MOCK } from "@/lib/mock-data";
 
 const FACTS = [
   { label: "Encryption", value: "Zama Protocol, fully homomorphic encryption" },
-  { label: "Token standard", value: "ERC-7984 confidential tokens (OpenZeppelin)" },
+  {
+    label: "Token standard",
+    value: "ERC-7984 confidential tokens, via OpenZeppelin",
+  },
   { label: "Network", value: "Ethereum Sepolia" },
-  { label: "Contracts", value: "SortisPool, SortisDraw (ERNIE), SortisFaucet" },
+  {
+    label: "Contracts",
+    value: "SortisPool, SortisDraw, SortisFaucet",
+  },
 ];
 
 const ADDRESSES = [
@@ -18,14 +24,18 @@ export default function UnderTheHood() {
   return (
     <section
       id="under-the-hood"
-      className="container mb-10 space-y-6 rounded-6xl bg-zinc-50 py-8 dark:bg-zinc-900 md:py-12 lg:py-24"
+      className="container mb-10 space-y-6 rounded-6xl bg-zinc-100 py-8 dark:bg-zinc-900 md:py-12 lg:py-24"
     >
       <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
         <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
           Under the hood
         </h2>
         <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          Built on primitives that are audited, not bespoke.
+          Almost nothing here is invented. The encryption, the token standard,
+          and the contract components all come from work that has already been
+          audited and used in production, which leaves the draw itself as the
+          only genuinely new piece and keeps the surface worth scrutinising
+          small.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 md:max-w-[64rem] md:grid-cols-2">
@@ -54,7 +64,7 @@ export default function UnderTheHood() {
                   href={MOCK.repoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
+                  className="text-brand hover:underline"
                 >
                   github.com/Dominion116/sortis
                 </a>
@@ -77,8 +87,10 @@ export default function UnderTheHood() {
               </div>
             ))}
           </dl>
-          <p className="mt-4 text-xs text-muted-foreground">
-            Addresses go live with the Sepolia deployment and are verified on Etherscan.
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+            These addresses are filled in when the contracts are deployed to
+            Sepolia, and every one of them is verified on Etherscan so the
+            source you read is the source that runs.
           </p>
         </div>
       </div>

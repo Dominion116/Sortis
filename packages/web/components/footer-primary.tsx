@@ -109,9 +109,11 @@ export default function FooterPrimary() {
           </div>
           <div>
             <h3 className="mb-4 text-lg font-bold">Follow the build</h3>
-            <p className="mb-4 text-primary">
-              Sortis is being built in public for the Zama Developer Program.
-              Star the repository to follow contract and app progress.
+            <p className="mb-4 leading-relaxed text-primary">
+              Sortis is being built in the open as an entry to the Zama
+              Developer Program. The repository is where the contracts, the
+              tests, and this page all live, so it is the best place to watch
+              the work as it happens.
             </p>
             <CoolMode>
               <Button
@@ -137,7 +139,7 @@ export default function FooterPrimary() {
               Sortis<span className="text-brand">.</span>
             </span>
           </div>
-          <p className="mt-4 text-gray-500 md:mt-0">© Sortis 2026</p>
+          <p className="mt-4 text-muted-foreground md:mt-0">© Sortis 2026</p>
         </div>
       </div>
     </footer>
