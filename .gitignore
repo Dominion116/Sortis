@@ -26,32 +26,8 @@ packages/**/.env.*
 !.env.example
 !**/.env.example
 
-# --- Next.js (packages/web) ---
-packages/web/.next/
-packages/web/out/
-packages/web/build/
-.next/
-out/
-next-env.d.ts
-
-# --- Vercel ---
-.vercel
-
-# --- Hardhat (packages/contracts) ---
-packages/contracts/cache/
-packages/contracts/artifacts/
-packages/contracts/typechain-types/
-packages/contracts/coverage/
-packages/contracts/coverage.json
-packages/contracts/deployments/localhost/
-packages/contracts/.deployments/local/
-cache/
-artifacts/
-typechain-types/
-
 # --- TypeScript ---
 *.tsbuildinfo
-.tsbuildinfo
 
 # --- Testing ---
 coverage/
@@ -68,6 +44,9 @@ lerna-debug.log*
 # --- Build output ---
 dist/
 build/
+
+# --- Local blockchain tooling ---
+packages/contracts/fhevmTemp/
 
 # --- OS files ---
 .DS_Store
@@ -90,8 +69,5 @@ desktop.ini
 *.pem
 *.key
 mnemonic.txt
-/docs
-
-
-.codex
-.claude
+.codex/
+.claude/
