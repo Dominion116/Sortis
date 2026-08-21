@@ -1,10 +1,10 @@
 import { ethers, network } from "hardhat";
 
 /**
- * Phase 2 deployment skeleton.
+ * Deployment skeleton (Phases 2-4).
  *
  * Deploys the confidential token, both pool configurations, the draw engine and
- * the mock yield source, then wires them together. Real Sepolia deployment,
+ * a mock yield source per pool, then wires them together. Real Sepolia deployment,
  * Etherscan verification and address publishing are Phase 7; this exists now so
  * the sequence is exercised on the local mock coprocessor from the start rather
  * than written for the first time under deadline pressure.
@@ -45,19 +45,20 @@ async function main() {
   const tokenAddress = await token.getAddress();
   console.log(`ConfidentialUSDT: ${tokenAddress}`);
 
-  const mockYield = await ethers.deployContract("MockYieldSource", [
-    tokenAddress,
-    MOCK_RATE_BPS,
-    deployerAddress,
-  ]);
-  await mockYield.waitForDeployment();
-  const mockYieldAddress = await mockYield.getAddress();
-  console.log(`MockYieldSource:  ${mockYieldAddress}`);
-
   for (const [label, duration] of [
     ["Demo", DEMO_ROUND_DURATION],
     ["Standard", STANDARD_ROUND_DURATION],
   ] as const) {
+    // One mock per pool: accrual and the prize reserve are independent, and
+    // MockYieldSource.onlyPool is a single address.
+    const mockYield = await ethers.deployContract("MockYieldSource", [
+      tokenAddress,
+      MOCK_RATE_BPS,
+      deployerAddress,
+    ]);
+    await mockYield.waitForDeployment();
+    const mockYieldAddress = await mockYield.getAddress();
+
     const pool = await ethers.deployContract("SortisPool", [
       tokenAddress,
       duration,
@@ -71,13 +72,15 @@ async function main() {
     const drawAddress = await draw.getAddress();
 
     await (await pool.setDrawEngine(drawAddress)).wait();
+    await (await mockYield.setPool(poolAddress)).wait();
     await (await pool.setYieldSource(mockYieldAddress)).wait();
 
-    console.log(`SortisPool (${label}): ${poolAddress}`);
-    console.log(`SortisDraw (${label}): ${drawAddress}`);
+    console.log(`MockYieldSource (${label}): ${mockYieldAddress}`);
+    console.log(`SortisPool (${label}):      ${poolAddress}`);
+    console.log(`SortisDraw (${label}):      ${drawAddress}`);
   }
 
-  console.log("Phase 2 core deployment complete. Deposits and draws land in Phases 3 to 5.");
+  console.log("Phase 4 core deployment complete. The draw engine lands in Phase 5.");
 }
 
 main().catch((error) => {

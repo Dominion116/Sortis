@@ -15,11 +15,10 @@ import {IYieldSource} from "./interfaces/IYieldSource.sol";
  *         deposits, holds encrypted per-user balances, issues tickets, processes
  *         withdrawals, and routes idle funds to the configured yield source.
  *
- * @dev PHASE 3. The deposit path and round bookkeeping are implemented here.
- *      Withdrawals and yield routing remain Phase 4, the draw hooks Phase 5.
- *      The ticket storage layout is fixed and later phases must not casually
- *      change it, because both the draw engine and the frontend are written
- *      against it.
+ * @dev PHASE 4. Deposits, withdrawals and yield routing are implemented here.
+ *      The draw hooks remain Phase 5. The ticket storage layout is fixed and
+ *      later phases must not casually change it, because both the draw engine
+ *      and the frontend are written against it.
  *
  *      THE TICKET MODEL (PRD 3.2)
  *      Each deposit appends a ticket carrying a running `cumulative` sum rather
@@ -74,6 +73,18 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
 
     /// @notice Thrown when a constructor or setter is handed the zero address.
     error ZeroAddress();
+
+    /// @notice Thrown when `ticketId` is outside the appended list.
+    error InvalidTicket(uint256 ticketId);
+
+    /// @notice Thrown when a caller tries to withdraw a ticket they do not own.
+    error NotTicketOwner(uint256 ticketId);
+
+    /// @notice Thrown when a yield-routing call is made before a source is configured.
+    error YieldSourceNotSet();
+
+    /// @notice Thrown when a caller other than the owner or the draw engine routes yield.
+    error UnauthorizedYieldRouter();
 
     /**
      * @notice Thrown when the depositor has not made this pool an ERC-7984 operator.
@@ -167,6 +178,12 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
         _;
     }
 
+    /// @dev Owner configures the source; the draw engine harvests prizes from it.
+    modifier onlyYieldManager() {
+        if (msg.sender != owner() && msg.sender != drawEngine) revert UnauthorizedYieldRouter();
+        _;
+    }
+
     // ---------------------------------------------------------------------
     // Views
     // ---------------------------------------------------------------------
@@ -223,13 +240,39 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
         return _tickets[eligibleTicketCount - 1].cumulative;
     }
 
+    /**
+     * @notice Interest earned on idle funds and not yet swept into a prize.
+     * @dev Forwards to the configured yield source. Returns 0 when none is set,
+     *      so the Phase 9 statistics strip can read this unconditionally.
+     */
+    function accrued() external view returns (uint64) {
+        if (address(yieldSource) == address(0)) return 0;
+        return yieldSource.accrued();
+    }
+
     // ---------------------------------------------------------------------
     // Admin
     // ---------------------------------------------------------------------
 
+    /**
+     * @notice Point the pool at a yield backend, or at `address(0)` to unset.
+     * @dev Grants the new source operator rights over this pool's confidential
+     *      token so `allocateToYield` can move a publicly known aggregate in.
+     *      Individual deposits never take that path: they stay encrypted here
+     *      so a withdrawal does not have to wait on an oracle.
+     */
     function setYieldSource(address newSource) external onlyOwner {
-        emit YieldSourceUpdated(address(yieldSource), newSource);
+        address previous = address(yieldSource);
+        if (previous != address(0) && previous != newSource) {
+            IERC7984(asset).setOperator(previous, 0);
+        }
+
+        emit YieldSourceUpdated(previous, newSource);
         yieldSource = IYieldSource(newSource);
+
+        if (newSource != address(0)) {
+            IERC7984(asset).setOperator(newSource, type(uint48).max);
+        }
     }
 
     function setDrawEngine(address newEngine) external onlyOwner {
@@ -351,14 +394,69 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
     // ---------------------------------------------------------------------
 
     /**
-     * @notice Withdraw principal, available at any time including mid-round.
-     * @dev Phase 4. Marks the ticket inactive WITHOUT rebuilding the cumulative
-     *      sums above it. Rebuilding is linear and would have to run on every
-     *      withdrawal, so the gap is left in place and handled at draw time as a
-     *      rollover. That is a documented outcome, not a defect.
+     * @notice Withdraw a ticket's principal, available at any time including mid-round.
+     * @dev Marks the ticket inactive WITHOUT rebuilding the cumulative sums above
+     *      it. Rebuilding is linear and would have to run on every withdrawal, so
+     *      the gap is left in place and handled at draw time as a rollover. That
+     *      is a documented outcome, not a defect (PRD 3.3).
+     *
+     *      `active` is encrypted, so a second withdraw cannot be reverted on
+     *      without decrypting it. The transfer is therefore gated with `FHE.select`:
+     *      a live ticket sends its amount, an already-voided one sends zero, and
+     *      a double-withdraw cannot mint extra tokens.
      */
-    function withdraw(uint256, externalEuint64, bytes calldata) external pure {
-        revert NotImplemented();
+    function withdraw(uint256 ticketId) external nonReentrant {
+        if (ticketId >= _tickets.length) revert InvalidTicket(ticketId);
+
+        Ticket storage t = _tickets[ticketId];
+        if (t.owner != msg.sender) revert NotTicketOwner(ticketId);
+
+        euint64 toSend = FHE.select(t.active, t.amount, FHE.asEuint64(0));
+        FHE.allowThis(toSend);
+
+        ebool inactive = FHE.asEbool(false);
+        FHE.allowThis(inactive);
+        FHE.allow(inactive, msg.sender);
+        t.active = inactive;
+
+        euint64 newBalance = FHE.sub(_balances[msg.sender], toSend);
+        _balances[msg.sender] = newBalance;
+        FHE.allowThis(newBalance);
+        FHE.allow(newBalance, msg.sender);
+
+        FHE.allowTransient(toSend, asset);
+        IERC7984(asset).confidentialTransfer(msg.sender, toSend);
+
+        emit Withdrawn(msg.sender, ticketId, t.roundId);
+    }
+
+    // ---------------------------------------------------------------------
+    // Yield routing — Phase 4
+    // ---------------------------------------------------------------------
+
+    /**
+     * @notice Move a publicly known amount of idle funds into the yield source.
+     * @dev Amounts on this path are plaintext by construction: only the pool
+     *      aggregate ever crosses the yield boundary (see {IYieldSource}).
+     *      Individual deposits never take this path; they stay encrypted in the
+     *      pool so they can be withdrawn without waiting on an oracle. Tests
+     *      call this with known amounts; Phase 5 uses it after a round total is
+     *      publicly decrypted.
+     */
+    function allocateToYield(uint64 amount) external nonReentrant onlyYieldManager {
+        if (address(yieldSource) == address(0)) revert YieldSourceNotSet();
+        yieldSource.deposit(amount);
+    }
+
+    /**
+     * @notice Redeem a publicly known amount from the yield source and send it to `to`.
+     * @dev Used to return principal to this pool, and in Phase 5 to harvest
+     *      accrued interest as the round's prize.
+     */
+    function recallFromYield(uint64 amount, address to) external nonReentrant onlyYieldManager {
+        if (address(yieldSource) == address(0)) revert YieldSourceNotSet();
+        if (to == address(0)) revert ZeroAddress();
+        yieldSource.withdraw(amount, to);
     }
 
     // ---------------------------------------------------------------------

@@ -11,7 +11,7 @@ Balances, deposits and winnings are encrypted end to end using fully homomorphic
 | **Program** | [Zama Developer Program, Mainnet Season 4](https://www.zama.org/post/zama-developer-program-mainnet-season-4), Bounty Track |
 | **Submission deadline** | 5 September 2026, 23:59 AOE |
 | **Target network** | Ethereum Sepolia |
-| **Status** | In development, Phase 3 of 13 complete (confidential deposits and the ticket model) — see [Implementation Plan](docs/implementation-plan.md) |
+| **Status** | In development, Phase 4 of 13 complete (withdrawals and the yield source) — see [Implementation Plan](docs/implementation-plan.md) |
 
 ---
 
@@ -168,7 +168,7 @@ sortis/
 
 ## Getting started
 
-> The workspace is being built out phase by phase — see the [implementation plan](docs/implementation-plan.md) for current status. The monorepo, the contracts workspace and the confidential deposit path now exist, with the encrypted ticket list and its cumulative sums under test. Withdrawals and yield are Phase 4 and the draw engine is Phase 5, and every unimplemented path reverts with `NotImplemented()` rather than silently succeeding.
+> The workspace is being built out phase by phase — see the [implementation plan](docs/implementation-plan.md) for current status. The monorepo, the contracts workspace, confidential deposits, withdrawals and the mock yield source now exist under test. The draw engine is Phase 5, and every unimplemented path reverts with `NotImplemented()` rather than silently succeeding.
 
 
 ### Prerequisites
