@@ -1,4 +1,4 @@
-import { FhevmType } from "@fhevm/hardhat-plugin";
+ import { FhevmType } from "@fhevm/hardhat-plugin";
 import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
 import { expect } from "chai";
 import { ethers, fhevm } from "hardhat";
@@ -163,15 +163,41 @@ describe("Phase 3 — SortisPool deposits", function () {
     await expect(fhevm.userDecryptEuint(FhevmType.euint64, handle, poolAddress, bob)).to.be.rejected;
   });
 
-  it("keeps a ticket's cumulative unreadable by its own owner", async function () {
+  it("keeps a cumulative that aggregates other people's deposits unreadable by anyone", async function () {
     await deposit(alice, 100_000n);
-    const ticket = await pool.ticketAt(0);
+    await deposit(bob, 50_000n);
 
-    // This restriction is load bearing, not cautious. Two decryptable
-    // cumulatives would reveal the sum of every deposit made in between by
-    // subtraction, which is exactly what the pool exists to keep private.
-    await expect(fhevm.userDecryptEuint(FhevmType.euint64, ticket.cumulative, poolAddress, alice)).to.be.rejected;
+    const bobTicket = await pool.ticketAt(1);
+
+    // This is the assertion the pool's privacy claim actually rests on. Bob's
+    // cumulative is 150,000; if Bob could read it he would recover Alice's
+    // 100,000 by subtracting his own 50,000, and the same subtraction across any
+    // two tickets recovers everything deposited in between them.
+    await expect(fhevm.userDecryptEuint(FhevmType.euint64, bobTicket.cumulative, poolAddress, bob)).to.be.rejected;
+    await expect(fhevm.userDecryptEuint(FhevmType.euint64, bobTicket.cumulative, poolAddress, alice)).to.be.rejected;
   });
+
+  it("aliases a first deposit's cumulative onto the depositor's own balance handle", async function () {
+    await deposit(alice, 100_000n);
+
+    const ticket = await pool.ticketAt(0);
+    const balanceHandle = await pool.balanceHandleOf(alice.address);
+
+    // Recorded rather than worked around. FHEVM handles are deterministic
+    // hashes of the operation and its operands, and on a first deposit BOTH the
+    // ticket cumulative and the depositor's balance are computed as
+    // `add(0, transferred)`, so they are literally the same handle and the grant
+    // over the balance carries to the cumulative.
+    //
+    // It is safe because aliasing requires identical operands, which means the
+    // two values are identical as well: anything a depositor can read this way
+    // is something they could already read. As soon as a second depositor's
+    // amount enters the chain the operands differ, the handles diverge, and the
+    // test above holds. If this assertion ever fails, handle derivation has
+    // changed and the reasoning above needs rechecking.
+    expect(ticket.cumulative).to.equal(balanceHandle);
+  });
+
 
   it("marks a fresh ticket active", async function () {
     await deposit(alice, 100_000n);

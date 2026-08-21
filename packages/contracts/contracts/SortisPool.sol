@@ -304,7 +304,13 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
 
         ticketId = _tickets.length;
         _tickets.push(
-            Ticket({owner: msg.sender, amount: transferred, cumulative: cumulative, active: active, roundId: eligibleFrom})
+            Ticket({
+                owner: msg.sender,
+                amount: transferred,
+                cumulative: cumulative,
+                active: active,
+                roundId: eligibleFrom
+            })
         );
 
         euint64 newBalance = FHE.add(_balances[msg.sender], transferred);
@@ -319,14 +325,26 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
 
         // What the depositor may NOT read: `cumulative`. It is granted to this
         // contract only, and that restriction is load bearing rather than
-        // cautious. A user who could decrypt two of their own cumulatives would
-        // recover the sum of every deposit made in between by subtraction, which
-        // is precisely the information the pool exists to keep private. Only the
+        // cautious. A user who could decrypt two cumulatives would recover the
+        // sum of every deposit made in between by subtraction, which is
+        // precisely the information the pool exists to keep private. Only the
         // round's final total is ever made public, by the Phase 5 oracle
         // request, and only because a verifiable draw requires it.
+        //
+        // One caveat, found by test rather than by reading: FHEVM handles are
+        // deterministic hashes of the operation and its operands, so on the very
+        // first deposit `cumulative` and the depositor's balance are both
+        // `add(0, transferred)` and are therefore the SAME handle, which the
+        // grant above makes readable. That is safe, because handles collide only
+        // when the operands do, and identical operands mean identical values:
+        // the depositor learns nothing beyond their own deposit. From the second
+        // ticket onward the chain includes somebody else's amount, the handles
+        // diverge, and the restriction bites. There is a test pinning both
+        // halves of this so a change in handle derivation cannot pass silently.
 
         emit Deposited(msg.sender, ticketId, eligibleFrom);
     }
+
 
     // ---------------------------------------------------------------------
     // Withdrawals — Phase 4
