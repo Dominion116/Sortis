@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    name: Contracts (compile, lint, test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/contracts
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Install from the repo root so npm resolves the workspace graph.
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      # Compile first: it generates the TypeChain types that typecheck and the
+      # tests both import, so running typecheck before this would always fail.
+      - name: Compile
+        run: npm run compile
+
+      - name: Lint Solidity
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      # Runs entirely against the FHEVM mock coprocessor: no RPC, no relayer,
+      # no secrets. That is what keeps CI usable on pull requests from forks.
+      - name: Test
+        run: npm run test
+
+  web:
+    name: Web (lint, build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: .
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+        env:
+          # Placeholders: the build must not depend on real secrets to pass CI.
+          NEXT_PUBLIC_REOWN_PROJECT_ID: ci-placeholder

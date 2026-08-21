@@ -1,0 +1,20 @@
+# Hardhat build output
+artifacts/
+cache/
+typechain-types/
+
+# Coverage
+coverage/
+coverage.json
+
+# hardhat-deploy local output (Sepolia deployments are committed on purpose,
+# so the frontend and the README can be regenerated from them)
+deployments/localhost/
+deployments/hardhat/
+
+# Secrets
+.env
+
+# TypeScript
+dist/
+*.tsbuildinfo

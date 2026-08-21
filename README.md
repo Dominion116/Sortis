@@ -11,7 +11,7 @@ Balances, deposits and winnings are encrypted end to end using fully homomorphic
 | **Program** | [Zama Developer Program, Mainnet Season 4](https://www.zama.org/post/zama-developer-program-mainnet-season-4), Bounty Track |
 | **Submission deadline** | 5 September 2026, 23:59 AOE |
 | **Target network** | Ethereum Sepolia |
-| **Status** | In development — see [Implementation Plan](docs/implementation-plan.md) |
+| **Status** | In development, Phase 2 of 13 complete (contracts foundation) — see [Implementation Plan](docs/implementation-plan.md) |
 
 ---
 
@@ -138,10 +138,11 @@ sortis/
         SortisPool.sol
         SortisDraw.sol
         interfaces/IYieldSource.sol
-        yield/MockYieldSource.sol
-        yield/MorphoYieldSource.sol   (stub, mainnet path)
+        token/ConfidentialUSDT.sol    ERC-7984 test token (cUSDT)
+        yields/MockYieldSource.sol
+        yields/MorphoYieldSource.sol  (stub, mainnet path)
       test/
-      deploy/
+      scripts/deploy.ts
     web/                       Next.js 16 application
       app/
       components/
@@ -167,7 +168,7 @@ sortis/
 
 ## Getting started
 
-> The workspace is being built out phase by phase — see the [implementation plan](docs/implementation-plan.md) for current status. Once the monorepo exists, the flow will be:
+> The workspace is being built out phase by phase — see the [implementation plan](docs/implementation-plan.md) for current status. The monorepo and the contracts workspace now exist; deposits, withdrawals and the draw engine are Phases 3 to 5, and every unimplemented path reverts with `NotImplemented()` rather than silently succeeding.
 
 ### Prerequisites
 
@@ -209,9 +210,10 @@ NEXT_PUBLIC_RELAYER_URL=
 
 ```bash
 cd packages/contracts
-npx hardhat compile
-npx hardhat test                 # runs against the mock coprocessor
-npx hardhat run deploy/deploy.ts --network sepolia
+npm run compile
+npm run test                     # 13 passing, against the mock coprocessor
+npm run lint && npm run typecheck
+npm run deploy:sepolia           # Phase 7
 ```
 
 ### Run the web app
