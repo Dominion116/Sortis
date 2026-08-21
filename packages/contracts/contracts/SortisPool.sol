@@ -15,10 +15,11 @@ import {IYieldSource} from "./interfaces/IYieldSource.sol";
  *         deposits, holds encrypted per-user balances, issues tickets, processes
  *         withdrawals, and routes idle funds to the configured yield source.
  *
- * @dev PHASE 4. Deposits, withdrawals and yield routing are implemented here.
- *      The draw hooks remain Phase 5. The ticket storage layout is fixed and
- *      later phases must not casually change it, because both the draw engine
- *      and the frontend are written against it.
+ * @dev PHASE 5. Deposits, withdrawals, yield routing and the draw-engine hooks
+ *      (publishing the round total, the per-ticket sweep, crediting claimable)
+ *      are implemented here. The ticket storage layout is fixed and later
+ *      phases must not casually change it, because both the draw engine and the
+ *      frontend are written against it.
  *
  *      THE TICKET MODEL (PRD 3.2)
  *      Each deposit appends a ticket carrying a running `cumulative` sum rather
@@ -65,11 +66,11 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
     // Errors
     // ---------------------------------------------------------------------
 
-    /// @notice Thrown by any path whose implementation is scheduled for a later phase.
-    error NotImplemented();
-
     /// @notice Thrown when a caller other than the configured draw engine calls a draw-only path.
     error OnlyDrawEngine();
+
+    /// @notice Thrown when the open round has no encrypted total to publish.
+    error NoRoundTotal();
 
     /// @notice Thrown when a constructor or setter is handed the zero address.
     error ZeroAddress();
@@ -235,7 +236,7 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
      *      uninitialised handle when the round has no eligible tickets, and
      *      Phase 5 treats that as "no draw to run" rather than as a total of 0.
      */
-    function roundTotalHandle() external view returns (euint64) {
+    function roundTotalHandle() public view returns (euint64) {
         if (eligibleTicketCount == 0) return euint64.wrap(0);
         return _tickets[eligibleTicketCount - 1].cumulative;
     }
@@ -486,11 +487,77 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
     // ---------------------------------------------------------------------
 
     /**
-     * @notice Credit an encrypted (possibly zero) prize to a ticket owner.
-     * @dev Phase 5. Called once per ticket per sweep batch, for winners and
-     *      losers alike, with the amount gated by `FHE.select`.
+     * @notice Mark the open round's encrypted grand total as publicly decryptable.
+     * @dev The handle lives on this contract (it is the last eligible ticket's
+     *      cumulative), so only this contract can flip the ACL. The draw engine
+     *      then fetches a KMS proof off-chain and submits it to `onTotalRevealed`.
+     *      Called once per close, before randomness is drawn, so the candidate
+     *      set is committed in public before anyone can know the draw.
      */
-    function creditClaimable(address, euint64) external view onlyDrawEngine {
-        revert NotImplemented();
+    function publishRoundTotal() external onlyDrawEngine returns (euint64 total) {
+        total = roundTotalHandle();
+        if (euint64.unwrap(total) == 0) revert NoRoundTotal();
+        FHE.makePubliclyDecryptable(total);
+    }
+
+    /**
+     * @notice Walk one ticket: compute the encrypted range-membership boolean,
+     *         and credit the (possibly zero) prize to its owner.
+     * @dev The FHE work lives here rather than on `SortisDraw` because the
+     *      ticket handles are granted to this contract only. Crossing that
+     *      boundary would mean an extra `FHE.allow` per field per ticket, paid
+     *      on every sweep. The draw engine still owns the state machine, the
+     *      cursor and the winner-count accumulator; it just cannot see the
+     *      plaintext of `hit`.
+     *
+     *      `randomValue` and `prize` must have been `FHE.allowTransient`'d to
+     *      this contract by the caller in the same transaction.
+     *
+     * @return hit Encrypted "this ticket's range contains r and is still live".
+     *             Granted to the draw engine so it can add it into the
+     *             winner-count ciphertext.
+     */
+    function sweepTicket(
+        uint256 ticketId,
+        euint64 randomValue,
+        euint64 prize
+    ) external onlyDrawEngine returns (ebool hit) {
+        if (ticketId >= _tickets.length) revert InvalidTicket(ticketId);
+
+        Ticket storage t = _tickets[ticketId];
+        euint64 prevCumulative = ticketId == 0 ? euint64.wrap(0) : _tickets[ticketId - 1].cumulative;
+
+        // Ticket i owns [cumulative(i-1), cumulative(i)). Inactive tickets still
+        // occupy their range; a hit that fails the `active` check is the
+        // rollover case, not a skip-to-neighbour.
+        ebool lower = FHE.le(prevCumulative, randomValue);
+        ebool upper = FHE.lt(randomValue, t.cumulative);
+        hit = FHE.and(FHE.and(lower, upper), t.active);
+
+        euint64 addend = FHE.select(hit, prize, FHE.asEuint64(0));
+        FHE.allowThis(addend);
+        _creditClaimable(t.owner, addend);
+
+        // The draw engine needs `hit` to accumulate the winner-count invariant.
+        FHE.allowThis(hit);
+        FHE.allow(hit, msg.sender);
+    }
+
+    /**
+     * @notice Credit an encrypted (possibly zero) prize to a ticket owner.
+     * @dev Called once per ticket per sweep batch, for winners and losers
+     *      alike, with the amount gated by `FHE.select`. Uniform writes are
+     *      the privacy guarantee: if only the winner's slot changed, the
+     *      state diff alone would identify them.
+     */
+    function creditClaimable(address account, euint64 amount) external onlyDrawEngine {
+        _creditClaimable(account, amount);
+    }
+
+    function _creditClaimable(address account, euint64 amount) private {
+        euint64 newClaimable = FHE.add(_claimable[account], amount);
+        _claimable[account] = newClaimable;
+        FHE.allowThis(newClaimable);
+        FHE.allow(newClaimable, account);
     }
 }

@@ -18,6 +18,8 @@ Each phase below lists its goal, dependencies, deliverables, key tasks, and exit
 
 ## Phase 1 — Landing page & brand foundation
 
+**Status:** Complete.
+
 **Goal:** Ship the public-facing `/` route that sells the idea, with no wallet and no contracts required.
 
 **Depends on:** Nothing. This is the starting point.
@@ -56,6 +58,8 @@ Each phase below lists its goal, dependencies, deliverables, key tasks, and exit
 
 ## Phase 2 — Monorepo & contracts foundation
 
+**Status:** Complete.
+
 **Goal:** Stand up the Hardhat workspace so encrypted contract logic can be written and unit-tested locally.
 
 **Depends on:** Phase 1 (for the shared root tooling it already established).
@@ -82,6 +86,8 @@ Each phase below lists its goal, dependencies, deliverables, key tasks, and exit
 
 ## Phase 3 — Pool custody & the ticket model
 
+**Status:** Complete.
+
 **Goal:** `SortisPool` accepts confidential deposits and maintains the encrypted ticket list correctly.
 
 **Depends on:** Phase 2.
@@ -107,6 +113,8 @@ Each phase below lists its goal, dependencies, deliverables, key tasks, and exit
 
 ## Phase 4 — Withdrawals & yield source interface
 
+**Status:** Complete.
+
 **Goal:** Principal is withdrawable at any time, and idle funds have somewhere real (if simulated) to earn yield.
 
 **Depends on:** Phase 3.
@@ -131,6 +139,8 @@ Each phase below lists its goal, dependencies, deliverables, key tasks, and exit
 ---
 
 ## Phase 5 — Draw engine (SortisDraw / "ERNIE")
+
+**Status:** Complete. See `AGENTS.md` and `packages/contracts/README.md` for what landed and the decisions that bind Phase 6.
 
 **Goal:** Select exactly one winner over ciphertext, resumably, with a well-defined rollover case.
 

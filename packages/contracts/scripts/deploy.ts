@@ -1,7 +1,7 @@
 import { ethers, network } from "hardhat";
 
 /**
- * Deployment skeleton (Phases 2-4).
+ * Deployment skeleton (Phases 2-5).
  *
  * Deploys the confidential token, both pool configurations, the draw engine and
  * a mock yield source per pool, then wires them together. Real Sepolia deployment,
@@ -80,7 +80,7 @@ async function main() {
     console.log(`SortisDraw (${label}):      ${drawAddress}`);
   }
 
-  console.log("Phase 4 core deployment complete. The draw engine lands in Phase 5.");
+  console.log("Phase 5 core deployment complete. Faucet and Sepolia publish are Phase 7.");
 }
 
 main().catch((error) => {

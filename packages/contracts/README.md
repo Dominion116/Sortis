@@ -5,16 +5,17 @@ state and the draw itself are implemented with [`@fhevm/solidity`](https://docs.
 on the Zama Protocol; the pool's token is ERC-7984 via OpenZeppelin's
 confidential contracts.
 
-> **Status: Phase 4 of 13 complete.** The toolchain, the repository layout and
+> **Status: Phase 5 of 13 complete.** The toolchain, the repository layout and
 > the ERC-7984 integration are proven against the mock coprocessor. The pool
 > takes confidential deposits, maintains the encrypted ticket list with its
 > cumulative sums, tracks round eligibility, and lets a depositor withdraw a
 > ticket at any time without rebuilding the sums above it. Idle funds of a
-> publicly known amount route into `MockYieldSource`, which accrues at a
-> configurable rate against a pre-funded reserve. The draw engine (Phase 5) is
-> not implemented yet. Every such path reverts with `NotImplemented()` rather
-> than silently succeeding, so nothing can be accidentally built on top of a
-> no-op.
+> publicly known amount route into `MockYieldSource`. The draw engine
+> (`SortisDraw` / ERNIE) closes a round, publicly decrypts the grand total,
+> draws on-chain encrypted randomness, sweeps tickets in resumable batches and
+> settles (or rolls over) against a winner-count invariant. Phase 6 is the
+> remaining contract-quality work: broader coverage, gas accounting and the
+> threat-model write-up.
 
 
 ## Layout
@@ -95,8 +96,19 @@ genuinely slow, not because tests are hanging.
 - **Every participant's claimable slot is written on every draw**, winners and
   losers alike, via `FHE.select`. This is the privacy guarantee, not an
   inefficiency: if only the winner's slot changed, the state diff would identify
-  them. Phase 6 adds a dedicated regression test for it because a failure here
-  would otherwise be silent.
+  them. Phase 5 already asserts the handles are written; Phase 6 adds a
+  dedicated regression test because a failure here would otherwise be silent.
+- **Public decryption is FHEVM 0.11, not the old oracle callback.** There is no
+  `FHE.requestDecryption` in `@fhevm/solidity@0.11.1`. Close marks the total
+  `makePubliclyDecryptable`; the keeper (or anyone with a KMS proof) submits
+  `onTotalRevealed`. The same pattern settles the winner-count invariant. The
+  skeleton's `onTotalRevealed(uint256, uint64, bytes[])` signature was updated
+  to match.
+- **The FHE sweep loop runs inside `SortisPool.sweepTicket`.** Ticket handles
+  are granted to the pool, not to the draw engine. Crossing that boundary would
+  cost an extra `FHE.allow` per field per ticket, paid on every sweep.
+  `SortisDraw` still owns the state machine, the cursor and the winner-count
+  accumulator.
 - **A deposit credits what actually moved, never what was requested.** ERC-7984
   cannot revert on insufficient balance without leaking the balance, so
   `confidentialTransferFrom` clamps and returns the real figure. Crediting the
@@ -111,7 +123,7 @@ genuinely slow, not because tests are hanging.
 
 ## Gas baselines
 
-Measured under the mock coprocessor, recorded here as the Phase 3/4 baseline
+Measured under the mock coprocessor, recorded here as the Phase 3 to 5 baseline
 that Phase 6's full accounting builds on:
 
 | Path | Gas |
@@ -119,6 +131,8 @@ that Phase 6's full accounting builds on:
 | First deposit into an empty pool (cold storage) | ~705,000 |
 | Subsequent deposit (warm storage) | ~665,000 |
 | Withdraw a live ticket | ~493,000 |
+| `stepDraw` first ticket in a batch | ~416,000 |
+| `stepDraw` subsequent ticket | ~398,000 |
 
 Most of this is FHEVM coprocessor work rather than EVM storage: input-proof
 verification, confidential transfers, and the encrypted additions and selects
@@ -201,6 +215,23 @@ somebody else's deposit is unreadable by everyone.
 - [x] `SortisPool.accrued()` forwards to the configured source (and returns 0
       when none is set); `allocateToYield` / `recallFromYield` move a publicly
       known aggregate across the yield boundary
+- [x] `solhint` reports zero problems and `tsc --noEmit` is clean
+
+## Phase 5 exit criteria
+
+- [x] `hardhat compile` and `hardhat test` succeed — 73 passing
+- [x] A full round (close → decrypt total → draw random → sweep in batches →
+      settle) completes against the mock coprocessor, with exactly one winner
+      credited the harvested prize and losers credited zero
+- [x] Sweep is resumable: cursor persists across transactions, `settle` reverts
+      with `SweepIncomplete` until the cursor reaches the frozen ticket count
+- [x] Rollover: voiding the ticket the random value would have hit produces
+      winner-count 0, no prize credited, and the prize carried into
+      `rolloverBalance`
+- [x] Empty eligible set at close rolls over immediately, without consuming
+      randomness
+- [x] Two pool configurations exist in `scripts/deploy.ts`: demo (300s) and
+      standard (24h), both exercised in tests
 - [x] `solhint` reports zero problems and `tsc --noEmit` is clean
 
 
