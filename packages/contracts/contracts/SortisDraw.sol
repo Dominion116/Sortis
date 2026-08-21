@@ -116,6 +116,14 @@ contract SortisDraw is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
     ///      deployment would move this to a permissionless, incentivised keeper.
     address public keeper;
 
+    /**
+     * @notice Recommended `stepDraw` batch size for the Sepolia keeper.
+     * @dev Sized from Phase 6 gas and HCU accounting (see the contracts README).
+     *      `stepDraw` still takes an explicit size so a keeper can go smaller
+     *      if the ticket list is tiny, or if HCU limits move.
+     */
+    uint256 public constant DEFAULT_BATCH_SIZE = 8;
+
     /// @notice Round currently being drawn (or open). Historical rounds stay in `_rounds`.
     uint64 public drawingRoundId;
 

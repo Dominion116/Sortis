@@ -1,6 +1,13 @@
 import * as dotenv from "dotenv";
 import type { HardhatUserConfig } from "hardhat/config";
 
+// The FHEVM plugin refuses to run solidity-coverage unless this is set. Doing
+// it here means `npm run coverage` works on Windows and in CI without a
+// platform-specific env prefix.
+if (process.argv.includes("coverage")) {
+  process.env.SOLIDITY_COVERAGE = "true";
+}
+
 // The FHEVM plugin registers the mock coprocessor on the in-process `hardhat`
 // network, which is what lets the whole encrypted test suite run with no live
 // network and no relayer. It must be imported before anything reads HRE.
