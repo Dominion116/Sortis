@@ -5,13 +5,16 @@ state and the draw itself are implemented with [`@fhevm/solidity`](https://docs.
 on the Zama Protocol; the pool's token is ERC-7984 via OpenZeppelin's
 confidential contracts.
 
-> **Status: Phase 3 of 13 complete.** The toolchain, the repository layout and
-> the ERC-7984 integration are proven against the mock coprocessor, and the
-> pool now takes confidential deposits, maintains the encrypted ticket list with
-> its cumulative sums, and tracks round eligibility. Withdrawals and yield
-> (Phase 4) and the draw engine (Phase 5) are not implemented yet. Every such
-> path reverts with `NotImplemented()` rather than silently succeeding, so
-> nothing can be accidentally built on top of a no-op.
+> **Status: Phase 4 of 13 complete.** The toolchain, the repository layout and
+> the ERC-7984 integration are proven against the mock coprocessor. The pool
+> takes confidential deposits, maintains the encrypted ticket list with its
+> cumulative sums, tracks round eligibility, and lets a depositor withdraw a
+> ticket at any time without rebuilding the sums above it. Idle funds of a
+> publicly known amount route into `MockYieldSource`, which accrues at a
+> configurable rate against a pre-funded reserve. The draw engine (Phase 5) is
+> not implemented yet. Every such path reverts with `NotImplemented()` rather
+> than silently succeeding, so nothing can be accidentally built on top of a
+> no-op.
 
 
 ## Layout
@@ -79,7 +82,12 @@ genuinely slow, not because tests are hanging.
 - **`IYieldSource` deals in plaintext `uint64`.** Only the pool aggregate crosses
   that boundary, and the aggregate is deliberately public: the prize is computed
   from it, so hiding it would make a draw impossible to verify. Per-user amounts
-  never reach a yield source.
+  never reach a yield source. User principal therefore stays encrypted in the
+  pool (so `withdraw(ticketId)` does not wait on an oracle); `allocateToYield`
+  is how a known aggregate is routed in to earn.
+- **`MockYieldSource.withdraw` takes interest first.** Harvesting `accrued()` as
+  a prize must not eat the principal that is still earning. Remaining amount, if
+  any, is principal.
 - **Withdrawals do not rebuild cumulative sums above the voided ticket.**
   Rebuilding is linear and would run on every withdrawal. The gap is left in
   place and resolves at draw time as a rollover, which is the same behaviour
@@ -101,21 +109,22 @@ genuinely slow, not because tests are hanging.
   them by subtraction. Only the round's final total is ever made public, and only
   because a verifiable draw requires it.
 
-## Deposit gas baseline
+## Gas baselines
 
-Measured under the mock coprocessor, single deposit, recorded here as the Phase 3
-baseline that Phase 6's full accounting builds on:
+Measured under the mock coprocessor, recorded here as the Phase 3/4 baseline
+that Phase 6's full accounting builds on:
 
 | Path | Gas |
 |---|---|
 | First deposit into an empty pool (cold storage) | ~705,000 |
 | Subsequent deposit (warm storage) | ~665,000 |
+| Withdraw a live ticket | ~493,000 |
 
-Most of this is FHEVM coprocessor work rather than EVM storage: one input-proof
-verification, one confidential transfer, and the encrypted additions for the
-cumulative and the running balance. The figure is recorded rather than asserted
-against a threshold, since a bound in the test suite would only pin today's
-coprocessor pricing in place as a requirement.
+Most of this is FHEVM coprocessor work rather than EVM storage: input-proof
+verification, confidential transfers, and the encrypted additions and selects
+for the cumulative, the running balance and the inactive flag. The figures are
+recorded rather than asserted against a threshold, since a bound in the test
+suite would only pin today's coprocessor pricing in place as a requirement.
 
 
 ## Verified toolchain versions
@@ -177,5 +186,21 @@ handles mean identical values and the depositor learns nothing beyond their own
 deposit, but it is pinned by two tests rather than left to be rediscovered: one
 asserting the aliasing exists, one asserting that a cumulative aggregating
 somebody else's deposit is unreadable by everyone.
+
+## Phase 4 exit criteria
+
+- [x] `hardhat compile` and `hardhat test` succeed — 61 passing
+- [x] Withdraw path unit tested: principal returns, the ticket's `active` flag
+      flips to false, and a second withdraw cannot mint extra tokens
+- [x] Cumulative-gap invariant: after a withdrawal the sums of tickets appended
+      after it are untouched, and a later deposit continues the chain *including*
+      the gap rather than closing it
+- [x] Mid-round withdrawal is allowed and does not shrink `eligibleTicketCount`
+- [x] `MockYieldSource` accrual is visible from the view within minutes of
+      simulated time at the configured rate, with no harvest required
+- [x] `SortisPool.accrued()` forwards to the configured source (and returns 0
+      when none is set); `allocateToYield` / `recallFromYield` move a publicly
+      known aggregate across the yield boundary
+- [x] `solhint` reports zero problems and `tsc --noEmit` is clean
 
 

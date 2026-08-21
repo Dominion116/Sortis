@@ -70,15 +70,14 @@ describe("Phase 2 — contract skeletons compile and deploy", function () {
     expect(await draw.pool()).to.equal(await pool.getAddress());
   });
 
-  it("reverts unimplemented Phase 3 to 5 paths explicitly rather than silently succeeding", async function () {
-    const { keeper, pool, draw } = await deployFixture();
+  it("reverts unimplemented Phase 5 paths explicitly rather than silently succeeding", async function () {
+    const { keeper, draw } = await deployFixture();
 
     // A skeleton that quietly returns would be far more dangerous than one that
     // reverts, because later phases could be built on top of a no-op.
     await expect(draw.connect(keeper).closeRound()).to.be.revertedWithCustomError(draw, "NotImplemented");
     await expect(draw.connect(keeper).stepDraw(10)).to.be.revertedWithCustomError(draw, "NotImplemented");
     await expect(draw.connect(keeper).settle()).to.be.revertedWithCustomError(draw, "NotImplemented");
-    await expect(pool.withdraw(0, ethers.ZeroHash, "0x")).to.be.revertedWithCustomError(pool, "NotImplemented");
   });
 
   it("restricts keeper-only paths to the configured keeper", async function () {
