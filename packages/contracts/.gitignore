@@ -6,6 +6,9 @@ typechain-types/
 # Coverage
 coverage/
 coverage.json
+.coverage_artifacts/
+.coverage_cache/
+.coverage.json
 
 # hardhat-deploy local output (Sepolia deployments are committed on purpose,
 # so the frontend and the README can be regenerated from them)

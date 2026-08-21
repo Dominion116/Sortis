@@ -452,21 +452,214 @@ describe("Phase 5 — SortisDraw", function () {
   });
 
   // -------------------------------------------------------------------
-  // Gas
+  // Additional encrypted-path coverage — Phase 6
+  // -------------------------------------------------------------------
+
+  it("lets the owner rotate the keeper and nobody else", async function () {
+    await expect(draw.connect(alice).setKeeper(alice.address)).to.be.revertedWithCustomError(
+      draw,
+      "OwnableUnauthorizedAccount",
+    );
+
+    await expect(draw.connect(deployer).setKeeper(alice.address))
+      .to.emit(draw, "KeeperUpdated")
+      .withArgs(keeper.address, alice.address);
+    expect(await draw.keeper()).to.equal(alice.address);
+
+    await expect(draw.connect(keeper).openRound()).to.be.revertedWithCustomError(draw, "OnlyKeeper");
+    await (await draw.connect(alice).openRound()).wait();
+    expect(await draw.drawingRoundId()).to.equal(1n);
+  });
+
+  it("rejects opening a second round while one is in flight", async function () {
+    await (await draw.connect(keeper).openRound()).wait();
+    await expect(draw.connect(keeper).openRound()).to.be.revertedWithCustomError(draw, "InvalidRoundState");
+  });
+
+  it("rejects a second onTotalRevealed and a drawRandom before the total is in", async function () {
+    await openAndClose([100_000n, 50_000n]);
+
+    await expect(draw.connect(keeper).drawRandom()).to.be.revertedWithCustomError(draw, "InvalidRoundState");
+
+    const total = await revealTotal();
+    expect(total).to.be.greaterThan(0n);
+
+    const handle = await draw.totalHandle(1n);
+    const again = await fhevm.publicDecrypt([handle]);
+    await expect(draw.onTotalRevealed(total, again.decryptionProof)).to.be.revertedWithCustomError(
+      draw,
+      "InvalidRoundState",
+    );
+  });
+
+  it("rejects settle with a garbage proof even after the sweep completes", async function () {
+    await openAndClose([100_000n]);
+    await revealTotal();
+    await (await draw.connect(keeper).drawRandom()).wait();
+    await (await draw.connect(keeper).stepDraw(1)).wait();
+
+    await expect(draw.connect(keeper).settle(1, 0, "0x")).to.be.reverted;
+  });
+
+  it("rejects a second stepDraw once the cursor has reached the end", async function () {
+    await openAndClose([100_000n, 50_000n]);
+    await revealTotal();
+    await (await draw.connect(keeper).drawRandom()).wait();
+    await (await draw.connect(keeper).stepDraw(2)).wait();
+
+    await expect(draw.connect(keeper).stepDraw(1))
+      .to.be.revertedWithCustomError(draw, "SweepIncomplete")
+      .withArgs(2n, 2n);
+  });
+
+  it("exposes DEFAULT_BATCH_SIZE and accepts it as a stepDraw argument", async function () {
+    expect(await draw.DEFAULT_BATCH_SIZE()).to.equal(8n);
+
+    await openAndClose([100_000n, 50_000n, 75_000n]);
+    await revealTotal();
+    await (await draw.connect(keeper).drawRandom()).wait();
+
+    const batch = await draw.DEFAULT_BATCH_SIZE();
+    await (await draw.connect(keeper).stepDraw(batch)).wait();
+    expect((await draw.sweepProgress(1n)).cursor).to.equal(3n);
+  });
+
+  it("does not sweep a mid-round deposit; that ticket waits for the next open", async function () {
+    await deposit(alice, 100_000n);
+    await (await draw.connect(keeper).openRound()).wait();
+    await deposit(bob, 50_000n); // tagged for round 2
+
+    await warp(DEMO_DURATION);
+    await (await draw.connect(keeper).closeRound()).wait();
+
+    expect((await draw.roundAt(1n)).frozenTicketCount).to.equal(1n);
+
+    await revealTotal();
+    await (await draw.connect(keeper).drawRandom()).wait();
+    await (await draw.connect(keeper).stepDraw(1)).wait();
+    await settleRound();
+
+    expect(await pool.claimableHandleOf(alice.address)).to.not.equal(ethers.ZeroHash);
+    expect(await pool.claimableHandleOf(bob.address)).to.equal(ethers.ZeroHash);
+  });
+
+  it("credits a single prize when one depositor holds two tickets", async function () {
+    await seedYield();
+    await deposit(alice, 80_000n);
+    await deposit(alice, 20_000n);
+    await deposit(bob, 50_000n);
+    await (await draw.connect(keeper).openRound()).wait();
+    await warp(DEMO_DURATION);
+    await (await draw.connect(keeper).closeRound()).wait();
+
+    const total = await revealTotal();
+    expect(total).to.equal(150_000n);
+    await (await draw.connect(keeper).drawRandom()).wait();
+    await (await draw.connect(keeper).stepDraw(3)).wait();
+    const { winnerCount } = await settleRound();
+    expect(winnerCount).to.equal(1n);
+
+    const prize = (await draw.roundAt(1n)).prizeAmount;
+    const aliceWon = await decryptClaimable(alice);
+    const bobWon = await decryptClaimable(bob);
+    expect(aliceWon === prize || bobWon === prize).to.equal(true);
+    expect(aliceWon === 0n || aliceWon === prize).to.equal(true);
+    expect(bobWon === 0n || bobWon === prize).to.equal(true);
+    expect(aliceWon + bobWon).to.equal(prize);
+  });
+
+  it("rolls over when every eligible ticket is zero-width and the published total is 0", async function () {
+    // Transfer clamps to the available balance. Requesting more than the
+    // depositor holds appends a zero-width ticket; a round of only those has
+    // nothing for FHE.rem to divide by.
+    await deposit(alice, MINT + 1n);
+    await (await draw.connect(keeper).openRound()).wait();
+    await warp(DEMO_DURATION);
+    await (await draw.connect(keeper).closeRound()).wait();
+
+    const handle = await draw.totalHandle(1n);
+    const results = await fhevm.publicDecrypt([handle]);
+    const total = clearValue(results, handle);
+    expect(total).to.equal(0n);
+
+    await expect(draw.onTotalRevealed(total, results.decryptionProof))
+      .to.emit(draw, "ErnieRolledOver")
+      .withArgs(1n, 0n);
+
+    expect((await draw.roundAt(1n)).state).to.equal(RoundState.RolledOver);
+    expect((await draw.roundAt(2n)).state).to.equal(RoundState.Open);
+  });
+
+  it("rejects a keeper who tries to settle with a winner count the KMS did not sign", async function () {
+    // WinnerCountInvariantViolated is only reachable if the ciphertext math
+    // itself produces a count other than 0 or 1 *and* the KMS honestly signs
+    // that count. The mock coprocessor will not forge a signature over a
+    // false count, so the keeper-facing guarantee is this: a mismatched
+    // claim fails signature verification and does not settle.
+    await openAndClose([100_000n, 50_000n]);
+    await revealTotal();
+    await (await draw.connect(keeper).drawRandom()).wait();
+    await (await draw.connect(keeper).stepDraw(2)).wait();
+
+    const roundId = await draw.drawingRoundId();
+    const countHandle = await draw.winnerCountHandle(roundId);
+    const randomHandle = await draw.randomHandle(roundId);
+    const honest = await fhevm.publicDecrypt([countHandle, randomHandle]);
+    const randomValue = clearValue(honest, randomHandle);
+
+    await expect(draw.connect(keeper).settle(2, randomValue, honest.decryptionProof)).to.be.reverted;
+
+    expect((await draw.roundAt(roundId)).state).to.equal(RoundState.Sweeping);
+    expect(await draw.drawingRoundId()).to.equal(roundId);
+  });
+
+  it("restricts pool draw hooks to the configured draw engine", async function () {
+    await deposit(alice, 100_000n);
+    await (await draw.connect(keeper).openRound()).wait();
+
+    await expect(pool.connect(alice).publishRoundTotal()).to.be.revertedWithCustomError(pool, "OnlyDrawEngine");
+    await expect(pool.connect(alice).sweepTicket(0, ethers.ZeroHash, ethers.ZeroHash)).to.be.revertedWithCustomError(
+      pool,
+      "OnlyDrawEngine",
+    );
+    await expect(pool.connect(alice).creditClaimable(alice.address, ethers.ZeroHash)).to.be.revertedWithCustomError(
+      pool,
+      "OnlyDrawEngine",
+    );
+    await expect(pool.connect(keeper).sweepTicket(99, ethers.ZeroHash, ethers.ZeroHash)).to.be.revertedWithCustomError(
+      pool,
+      "OnlyDrawEngine",
+    );
+  });
+
+  // -------------------------------------------------------------------
+  // Gas and HCU — Phase 6 accounting
   // -------------------------------------------------------------------
 
   describe("gas", function () {
-    it("records the gas cost of a single-ticket stepDraw", async function () {
+    it("records gas and HCU per ticket at several batch sizes", async function () {
       await openAndClose([100_000n, 50_000n, 75_000n]);
       await revealTotal();
       await (await draw.connect(keeper).drawRandom()).wait();
 
-      const first = await (await draw.connect(keeper).stepDraw(1)).wait();
-      const subsequent = await (await draw.connect(keeper).stepDraw(1)).wait();
+      const one = await (await draw.connect(keeper).stepDraw(1)).wait();
+      const two = await (await draw.connect(keeper).stepDraw(2)).wait();
 
-      console.log(`        stepDraw first ticket:       ${first!.gasUsed.toString()} gas`);
-      console.log(`        stepDraw subsequent ticket:  ${subsequent!.gasUsed.toString()} gas`);
-      expect(first!.gasUsed).to.be.greaterThan(0n);
+      const perOne = Number(one!.gasUsed);
+      const perTwo = Number(two!.gasUsed) / 2;
+
+      console.log(`        stepDraw batch=1 (1 ticket):  ${one!.gasUsed.toString()} gas  (${perOne} /ticket)`);
+      console.log(`        stepDraw batch=2 (2 tickets): ${two!.gasUsed.toString()} gas  (${Math.round(perTwo)} /ticket)`);
+
+      const hcuOne = fhevm.computeTransactionHCU(one!);
+      const hcuTwo = fhevm.computeTransactionHCU(two!);
+      console.log(`        HCU batch=1: global=${hcuOne.globalHCU} depth=${hcuOne.maxHCUDepth}`);
+      console.log(`        HCU batch=2: global=${hcuTwo.globalHCU} depth=${hcuTwo.maxHCUDepth}`);
+
+      expect(one!.gasUsed).to.be.greaterThan(0n);
+      expect(two!.gasUsed).to.be.greaterThan(one!.gasUsed);
+      expect(await draw.DEFAULT_BATCH_SIZE()).to.equal(8n);
     });
   });
 });
+

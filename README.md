@@ -11,7 +11,7 @@ Balances, deposits and winnings are encrypted end to end using fully homomorphic
 | **Program** | [Zama Developer Program, Mainnet Season 4](https://www.zama.org/post/zama-developer-program-mainnet-season-4), Bounty Track |
 | **Submission deadline** | 5 September 2026, 23:59 AOE |
 | **Target network** | Ethereum Sepolia |
-| **Status** | In development, Phase 5 of 13 complete (draw engine) — see [Implementation Plan](docs/implementation-plan.md) |
+| **Status** | In development, Phase 6 of 13 complete (contract test suite, gas, threat model) — see [Implementation Plan](docs/implementation-plan.md) |
 
 ---
 
@@ -168,7 +168,7 @@ sortis/
 
 ## Getting started
 
-> The workspace is being built out phase by phase — see the [implementation plan](docs/implementation-plan.md) for current status. The monorepo, the contracts workspace, confidential deposits, withdrawals, the mock yield source and the draw engine now exist under test. Phase 6 is the remaining contract-quality work (coverage, gas accounting, threat model).
+> The workspace is being built out phase by phase — see the [implementation plan](docs/implementation-plan.md) for current status. The monorepo, the contracts workspace, confidential deposits, withdrawals, the mock yield source and the draw engine exist under test, with a published coverage figure and a documented threat model. Phase 7 is Sepolia deployment.
 
 
 ### Prerequisites
@@ -212,7 +212,7 @@ NEXT_PUBLIC_RELAYER_URL=
 ```bash
 cd packages/contracts
 npm run compile
-npm run test                     # 73 passing, against the mock coprocessor
+npm run test                     # 89 passing, against the mock coprocessor
 npm run lint && npm run typecheck
 
 npm run deploy:sepolia           # Phase 7
@@ -228,13 +228,19 @@ npm run dev
 ## Testing
 
 - Unit tests against the Hardhat mock coprocessor for every encrypted path, including the cumulative-sum invariant
-- A property test that a random value drawn across the full range selects exactly one active ticket, run over many seeded rounds
+- A property test that a random value drawn across the full range selects exactly one active ticket, run over 20 seeded ticket lists
 - An explicit test that the voided-ticket case produces a rollover rather than a silent failure or double credit
-- A test asserting that losers' storage slots are written — a regression here would silently destroy the privacy guarantee
-- Gas measurement per ticket for the sweep, published here once available, so batching limits are documented rather than discovered
-- An integration test on Sepolia covering deposit → round close → draw → claim → withdraw as one sequence
+- A test asserting that losers' storage slots are rewritten on every draw. A regression here would silently destroy the privacy guarantee
+- Gas and HCU measurement per ticket for the sweep, used to set `DEFAULT_BATCH_SIZE = 8` (see [contracts README](packages/contracts/README.md#gas-and-hcu-accounting))
+- An integration test on Sepolia covering deposit → round close → draw → claim → withdraw as one sequence (Phase 7 / 12)
 
-Coverage will be reported here with a real number once the contract suite lands (see [implementation plan](docs/implementation-plan.md)).
+**Coverage** (solidity-coverage against the mock coprocessor, `MorphoYieldSource` skipped as a documented stub):
+
+| | Statements | Lines | Functions | Branches |
+|---|---|---|---|---|
+| All contracts | **97.1%** | **98.1%** | 94.4% | 79.1% |
+
+The one revert the suite does not hit is `WinnerCountInvariantViolated`, which requires the KMS to sign a winner count the coprocessor never produces. A keeper who submits a mismatched count fails signature verification instead.
 
 ## Deployed contracts (Sepolia)
 
@@ -247,15 +253,45 @@ Coverage will be reported here with a real number once the contract suite lands 
 
 ## Verifiability & threat model
 
-The draw's fairness has to be checkable by someone who can never see who took part:
+Checked against PRD section 3.4, claim by claim. The draw's fairness has to be checkable by someone who can never see who took part.
 
-- The ticket set is frozen and its length published **before** randomness is requested, so nobody can be added or removed after the fact.
-- Randomness is generated onchain by the protocol, not supplied by an operator — the deployer has no more influence over the outcome than any user.
-- The random value is publicly decrypted after settlement; combined with the published total, anyone can confirm it fell inside the valid range.
-- The contract publicly decrypts a winner count as an invariant. It must equal one, or zero in the rollover case — any other value halts settlement.
-- The full sequence (handles, total, random value, settled prize) is emitted as events and rendered on a public verification page, one per draw.
+### What the protocol guarantees (PRD 3.4)
 
-What an observer *cannot* reconstruct: who held which ticket, or how large it was.
+| PRD claim | How it is enforced |
+|---|---|
+| The ticket set is frozen and its length published before randomness is requested | `closeRound` snapshots `eligibleTicketCount` and emits `ErnieRoundClosed` *before* `drawRandom`. Mid-round deposits are tagged for the next round and are not in that prefix. |
+| Randomness is generated onchain by the protocol, not supplied by an operator | `FHE.randEuint64()` inside `drawRandom`. The keeper can choose *when* to call it, not *what* it returns. The deployer has no extra input. |
+| The random value is publicly decrypted after settlement; combined with the published total, anyone can confirm it fell inside the valid range | `ErnieRandomDrawn` and `Round.revealedRandom` are written in `settle`, after the sweep. `r < revealedTotal` is checkable from events alone. |
+| A publicly decrypted winner count must equal 1, or 0 in the rollover case; any other value halts settlement | `settle` verifies a KMS proof over the encrypted count. 1 pays, 0 rolls over, anything else reverts `WinnerCountInvariantViolated` and does not open the next round. |
+| The full sequence of handles, total, random value and settled prize is emitted and rendered on a public verification page | `ErnieRoundClosed`, `ErnieTotalRequested`, `ErnieTotalRevealed`, `ErnieSweepAdvanced`, `ErnieRandomDrawn`, `ErnieSettled` / `ErnieRolledOver`. `/verify/[roundId]` is Phase 11; the events are already the page's data source. |
+
+### What stays public on purpose
+
+- That an address participated (`Ticket.owner` is plaintext; `Deposited` / `Withdrawn` name the caller)
+- The frozen ticket count and the decrypted grand total (TVL of the eligible set)
+- The decrypted random value, after settlement
+- Whether a round settled or rolled over, and the prize amount
+- Timing: when deposits and withdrawals happened, relative to round open/close
+
+Participation is not a secret in a prize savings pool. Hiding the address would not hide the transaction origin anyway.
+
+### What an observer cannot reconstruct
+
+- How large any one ticket was, or the odds attached to any address
+- Which ticket the random value landed in, and therefore who won
+- A loser's claimable ciphertext still changes on every draw, so the state diff does not identify the winner. A dedicated test reads the mapping storage word and asserts it moves for every participant, including anyone who lost twice.
+
+### What the observer *can* infer, honestly
+
+- A withdrawal happened, so some range on the number line is now a rollover gap. They cannot tell how wide it is.
+- On a first deposit into an empty pool, FHEVM handle derivation aliases `cumulative` onto the depositor's balance (identical operands `add(0, transferred)`). That reveals nothing beyond the depositor's own amount, which they already know, and is pinned by tests.
+- The keeper can delay `closeRound` or `stepDraw`. They cannot pick the winner, and they cannot skip the winner-count check.
+
+### What this does not claim
+
+- The keeper is not decentralised. It is a hot key on testnet, stated as a convenience.
+- Yield on Sepolia is simulated. `MockYieldSource` is labelled everywhere a prize figure appears.
+- Ciphertext handles themselves are visible in storage. Privacy rests on the encryption and the uniform writes, not on hiding that a slot exists.
 
 ## Known limitations
 

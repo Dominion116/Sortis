@@ -170,6 +170,8 @@ Each phase below lists its goal, dependencies, deliverables, key tasks, and exit
 
 ## Phase 6 — Contract test suite, gas accounting & threat-model documentation
 
+**Status:** Complete. See `AGENTS.md` and `packages/contracts/README.md` for the coverage figure, the gas/HCU table, `DEFAULT_BATCH_SIZE`, and the PRD 3.4 threat-model mapping in the root README.
+
 **Goal:** Turn the contracts from "working" into "production quality, beyond proof of concept" per the bounty's own bar.
 
 **Depends on:** Phase 5.

@@ -372,6 +372,8 @@ describe("Phase 3 — SortisPool deposits", function () {
 
     it("reports round expiry against the configured duration", async function () {
       await (await pool.connect(drawEngine).openNextRound()).wait();
+      const openedAt = await pool.roundOpenedAt();
+      expect(await pool.roundEndsAt()).to.equal(openedAt + ROUND_DURATION);
       expect(await pool.isRoundExpired()).to.equal(false);
 
       await ethers.provider.send("evm_increaseTime", [Number(ROUND_DURATION)]);

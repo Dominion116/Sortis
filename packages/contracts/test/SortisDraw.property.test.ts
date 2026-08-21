@@ -5,6 +5,17 @@ import { ethers, fhevm } from "hardhat";
 import type { ConfidentialUSDT, SortisDraw, SortisPool } from "../typechain-types";
 import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signers";
 
+function clearValue(
+  results: { clearValues: Record<string, bigint | boolean | string> },
+  handle: string,
+): bigint {
+  const direct = results.clearValues[handle];
+  if (typeof direct === "bigint") return direct;
+  const match = Object.entries(results.clearValues).find(([key]) => key.toLowerCase() === handle.toLowerCase());
+  if (match && typeof match[1] === "bigint") return match[1];
+  throw new Error(`no bigint clear value for handle ${handle}`);
+}
+
 /**
  * Phase 6 — property tests over the ticket number line.
  *
@@ -182,7 +193,7 @@ describe("Phase 6 — range-selection property", function () {
 
     const totalHandle = await draw.totalHandle(1n);
     const totalProof = await fhevm.publicDecrypt([totalHandle]);
-    const total = totalProof.clearValues[totalHandle] as bigint;
+    const total = clearValue(totalProof, totalHandle);
     await (await draw.onTotalRevealed(total, totalProof.decryptionProof)).wait();
     await (await draw.connect(drawEngine).drawRandom()).wait();
     await (await draw.connect(drawEngine).stepDraw(amounts.length)).wait();
@@ -190,8 +201,8 @@ describe("Phase 6 — range-selection property", function () {
     const countHandle = await draw.winnerCountHandle(1n);
     const randomHandle = await draw.randomHandle(1n);
     const settlement = await fhevm.publicDecrypt([countHandle, randomHandle]);
-    const winnerCount = settlement.clearValues[countHandle] as bigint;
-    const randomValue = settlement.clearValues[randomHandle] as bigint;
+    const winnerCount = clearValue(settlement, countHandle);
+    const randomValue = clearValue(settlement, randomHandle);
 
     expect(winnerCount).to.equal(1n);
     expect(randomValue).to.be.lt(total);
@@ -277,9 +288,7 @@ describe("Phase 6 — losers' storage slots are written", function () {
     const closedId = await draw.drawingRoundId();
     const totalHandle = await draw.totalHandle(closedId);
     const totalProof = await fhevm.publicDecrypt([totalHandle]);
-    await (
-      await draw.onTotalRevealed(totalProof.clearValues[totalHandle] as bigint, totalProof.decryptionProof)
-    ).wait();
+    await (await draw.onTotalRevealed(clearValue(totalProof, totalHandle), totalProof.decryptionProof)).wait();
     await (await draw.connect(keeper).drawRandom()).wait();
     await (await draw.connect(keeper).stepDraw(amounts.length)).wait();
     return closedId;
@@ -293,11 +302,7 @@ describe("Phase 6 — losers' storage slots are written", function () {
     await (
       await draw
         .connect(keeper)
-        .settle(
-          results.clearValues[countHandle] as bigint,
-          results.clearValues[randomHandle] as bigint,
-          results.decryptionProof,
-        )
+        .settle(clearValue(results, countHandle), clearValue(results, randomHandle), results.decryptionProof)
     ).wait();
   }
 

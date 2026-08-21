@@ -57,7 +57,6 @@ const config: HardhatUserConfig = {
     apiKey: { sepolia: ETHERSCAN_API_KEY },
   },
   gasReporter: {
-    // Opt-in: gas accounting is Phase 6 work, not something every run should pay for.
     enabled: process.env.REPORT_GAS === "true",
     currency: "USD",
   },

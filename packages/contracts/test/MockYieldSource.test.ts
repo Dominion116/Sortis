@@ -77,6 +77,10 @@ describe("Phase 4 — MockYieldSource", function () {
   // Access
   // -------------------------------------------------------------------
 
+  it("exposes the confidential asset it was constructed with", async function () {
+    expect(await mock.asset()).to.equal(tokenAddress);
+  });
+
   it("rejects deposit and withdraw from anyone but the configured pool", async function () {
     await expect(mock.connect(stranger).deposit(1n)).to.be.revertedWithCustomError(mock, "OnlyPool");
     await expect(mock.connect(stranger).withdraw(1n, stranger.address)).to.be.revertedWithCustomError(mock, "OnlyPool");
@@ -233,6 +237,22 @@ describe("Phase 4 — SortisPool yield routing", function () {
     // deposits stay encrypted in the pool and are not used as the yield
     // principal, because that would leak them at the IYieldSource boundary.
     await (await token.connect(deployer).mint(poolAddress, PRINCIPAL)).wait();
+  });
+
+  it("lets the owner replace a yield source and revoke the previous operator", async function () {
+    const replacement = (await ethers.deployContract("MockYieldSource", [
+      tokenAddress,
+      RATE_BPS,
+      deployer.address,
+    ])) as unknown as MockYieldSource;
+    await replacement.waitForDeployment();
+    const previous = await mock.getAddress();
+    const next = await replacement.getAddress();
+
+    await expect(pool.connect(deployer).setYieldSource(next))
+      .to.emit(pool, "YieldSourceUpdated")
+      .withArgs(previous, next);
+    expect(await pool.yieldSource()).to.equal(next);
   });
 
   it("returns 0 from accrued() when no yield source is configured", async function () {

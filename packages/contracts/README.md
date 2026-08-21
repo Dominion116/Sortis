@@ -5,17 +5,14 @@ state and the draw itself are implemented with [`@fhevm/solidity`](https://docs.
 on the Zama Protocol; the pool's token is ERC-7984 via OpenZeppelin's
 confidential contracts.
 
-> **Status: Phase 5 of 13 complete.** The toolchain, the repository layout and
-> the ERC-7984 integration are proven against the mock coprocessor. The pool
-> takes confidential deposits, maintains the encrypted ticket list with its
-> cumulative sums, tracks round eligibility, and lets a depositor withdraw a
-> ticket at any time without rebuilding the sums above it. Idle funds of a
-> publicly known amount route into `MockYieldSource`. The draw engine
-> (`SortisDraw` / ERNIE) closes a round, publicly decrypts the grand total,
-> draws on-chain encrypted randomness, sweeps tickets in resumable batches and
-> settles (or rolls over) against a winner-count invariant. Phase 6 is the
-> remaining contract-quality work: broader coverage, gas accounting and the
-> threat-model write-up.
+> **Status: Phase 6 of 13 complete.** The contract suite is past "it works":
+> every encrypted path is under test against the mock coprocessor, including a
+> property test that a random value across the full range selects exactly one
+> active ticket, and a storage-diff test that losers' claimable slots are
+> rewritten on every draw. Sweep gas and HCU are measured; the keeper default
+> batch size is 8. Statement coverage is 97.1% (98.1% of lines). The threat
+> model lives in the root README and is checked against PRD 3.4. Phase 7 is
+> Sepolia deployment, the faucet, and publishing addresses.
 
 
 ## Layout
@@ -58,8 +55,8 @@ Run from `packages/contracts`, or from the root with `npm run <script> --workspa
 | `npm run test` | Full suite against the mock coprocessor, no network |
 | `npm run lint` | solhint over `contracts/**/*.sol` |
 | `npm run typecheck` | `tsc --noEmit` over config, tests and deploy scripts |
-| `npm run coverage` | solidity-coverage (real figure published in Phase 6) |
-| `REPORT_GAS=true npm run test` | Adds the gas report (Phase 6 accounting) |
+| `npm run coverage` | solidity-coverage against the mock (set `SOLIDITY_COVERAGE=true`, or just run this: `hardhat.config.ts` sets it when the coverage task is invoked) |
+| `REPORT_GAS=true npm run test` | Adds the hardhat-gas-reporter table |
 | `npm run deploy:sepolia` | Deploy and wire the contract set (Phase 7) |
 
 ## Toolchain notes
@@ -96,8 +93,9 @@ genuinely slow, not because tests are hanging.
 - **Every participant's claimable slot is written on every draw**, winners and
   losers alike, via `FHE.select`. This is the privacy guarantee, not an
   inefficiency: if only the winner's slot changed, the state diff would identify
-  them. Phase 5 already asserts the handles are written; Phase 6 adds a
-  dedicated regression test because a failure here would otherwise be silent.
+  them. A Phase 6 test reads the raw mapping storage word before and after two
+  successive draws and asserts it moves for every participant, including anyone
+  who lost both times.
 - **Public decryption is FHEVM 0.11, not the old oracle callback.** There is no
   `FHE.requestDecryption` in `@fhevm/solidity@0.11.1`. Close marks the total
   `makePubliclyDecryptable`; the keeper (or anyone with a KMS proof) submits
@@ -121,24 +119,33 @@ genuinely slow, not because tests are hanging.
   them by subtraction. Only the round's final total is ever made public, and only
   because a verifiable draw requires it.
 
-## Gas baselines
+## Gas and HCU accounting
 
-Measured under the mock coprocessor, recorded here as the Phase 3 to 5 baseline
-that Phase 6's full accounting builds on:
+Measured under the mock coprocessor. Most of the cost is FHEVM coprocessor work
+rather than EVM storage: input-proof verification, confidential transfers, and
+the encrypted additions, comparisons and selects. Figures are recorded rather
+than asserted against a threshold, since a bound in the test suite would only
+pin today's coprocessor pricing in place as a requirement.
 
-| Path | Gas |
-|---|---|
-| First deposit into an empty pool (cold storage) | ~705,000 |
-| Subsequent deposit (warm storage) | ~665,000 |
-| Withdraw a live ticket | ~493,000 |
-| `stepDraw` first ticket in a batch | ~416,000 |
-| `stepDraw` subsequent ticket | ~398,000 |
+| Path | Gas | Notes |
+|---|---|---|
+| First deposit into an empty pool (cold storage) | ~706,000 | |
+| Subsequent deposit (warm storage) | ~665,000 | |
+| Withdraw a live ticket | ~494,000 | |
+| `stepDraw` batch of 1 | ~416,000 (~416k/ticket) | HCU global 724,160, depth 416,032 |
+| `stepDraw` batch of 2 | ~721,000 (~361k/ticket) | HCU global 1,448,224, depth 523,032 |
 
-Most of this is FHEVM coprocessor work rather than EVM storage: input-proof
-verification, confidential transfers, and the encrypted additions and selects
-for the cumulative, the running balance and the inactive flag. The figures are
-recorded rather than asserted against a threshold, since a bound in the test
-suite would only pin today's coprocessor pricing in place as a requirement.
+HCU (homomorphic compute units) are the coprocessor's own meter. The protocol
+caps a transaction at 20,000,000 global HCU and 5,000,000 sequential depth.
+Global HCU scales roughly linearly with tickets in the batch (~724k each).
+Depth grows with the winner-count accumulator: about 416k for the first ticket
+plus ~107k for each additional one in the same transaction.
+
+`SortisDraw.DEFAULT_BATCH_SIZE` is **8**. At the numbers above that is about
+2.9M gas, 5.8M global HCU (29% of the cap) and ~1.2M depth (24% of the cap).
+A batch of 16 would still fit, but 8 leaves headroom if coprocessor pricing
+moves, and a 5-minute demo pool will not have hundreds of tickets. The keeper
+can always pass a smaller size; `stepDraw` does not hard-code the constant.
 
 
 ## Verified toolchain versions
@@ -232,6 +239,23 @@ somebody else's deposit is unreadable by everyone.
       randomness
 - [x] Two pool configurations exist in `scripts/deploy.ts`: demo (300s) and
       standard (24h), both exercised in tests
+- [x] `solhint` reports zero problems and `tsc --noEmit` is clean
+
+## Phase 6 exit criteria
+
+- [x] `hardhat compile` and `hardhat test` succeed — 89 passing
+- [x] Property test: across 20 seeded ticket lists, every `r` in `[0, total)`
+      selects at most one active ticket, exactly one when nothing is voided,
+      and the on-chain random value matches the same geometry
+- [x] Losers' storage slots are written: the claimable mapping word changes
+      for every participant on every draw, including anyone who lost twice
+- [x] Gas and HCU per ticket recorded above; `DEFAULT_BATCH_SIZE = 8`
+- [x] Threat model in the root README, checked against PRD 3.4 line by line
+- [x] Coverage is a real published number: **97.1% statements, 98.1% lines**
+      (94.4% functions, 79.1% branches). `MorphoYieldSource` is skipped as a
+      documented stub. The one deliberately unhit revert is
+      `WinnerCountInvariantViolated`, which requires the KMS to sign a count
+      the coprocessor never produces
 - [x] `solhint` reports zero problems and `tsc --noEmit` is clean
 
 

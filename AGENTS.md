@@ -9,8 +9,8 @@ and [`docs/sortis-implementation.docx`](docs/sortis-implementation.docx).
 Source of truth for *what is already true of the contracts*:
 [`packages/contracts/README.md`](packages/contracts/README.md).
 
-**Current status: Phase 5 of 13 complete.** Next is Phase 6 (contract test
-suite, gas accounting, threat-model documentation).
+**Current status: Phase 6 of 13 complete.** Next is Phase 7 (Sepolia
+deployment, faucet, address publishing).
 
 ---
 
@@ -103,7 +103,7 @@ Cumulatives above the voided ticket are not rebuilt. `IYieldSource` +
 pending accrual). Pool `allocateToYield` / `recallFromYield` move a publicly
 known aggregate. `MorphoYieldSource` remains a documented stub.
 
-### Phase 5 — Draw engine (complete) — this session
+### Phase 5 — Draw engine (complete)
 
 `SortisDraw` is no longer a skeleton. A keeper-driven state machine runs:
 
@@ -150,25 +150,61 @@ Do not "fix" these:
 
 ---
 
-## Next: Phase 6
+### Phase 6 — Contract test suite, gas, threat model (complete) — this session
 
-Goal: turn the contracts from "working" into "production quality, beyond
-proof of concept".
+89 tests passing. Coverage: 97.1% statements, 98.1% lines, 94.4% functions,
+79.1% branches (`MorphoYieldSource` skipped).
 
-Deliverables called out in the plan:
+New tests, not replacements:
 
-- Full unit suite for every encrypted path (expand, do not replace, Phase 5).
-- Property test: a random value across the full range selects exactly one
-  active ticket, many seeded rounds.
-- Explicit test that losers' storage slots are written (Phase 5 already
-  checks handles are non-zero; Phase 6 should pin the write itself).
-- Gas per ticket for the sweep, recorded in the README, used to pick a
-  production `batchSize` default.
-- Threat-model write-up mapping PRD 3.4 line by line.
-- Coverage report with a real published number.
+- `test/SortisDraw.property.test.ts`: 20 seeded ticket lists, every `r` in
+  `[0, total)` selects at most one active ticket (exactly one if nothing is
+  voided). A live encrypted draw's `r` matches the same geometry.
+- Losers' storage slots: raw mapping word changes for every participant on
+  *every* draw, including anyone who lost twice. Handle `!= 0` was not
+  enough; a skip-if-already-zero optimisation would have passed Phase 5.
+- Extra encrypted-path coverage on `SortisDraw`: keeper rotation, in-flight
+  `openRound`, replay of `onTotalRevealed`, mid-round deposit excluded from
+  the sweep, same-owner two tickets, zero-width total rollover, DEFAULT
+  batch size, draw-hook access, mismatched KMS count rejected.
 
-Claim/decrypt of `_claimable` is Phase 11, not Phase 6. Faucet and Sepolia
-deploy are Phase 7. Frontend wallet/SDK is Phase 8.
+Gas/HCU (mock coprocessor):
+
+| | gas/ticket | global HCU | depth |
+|---|---|---|---|
+| `stepDraw` batch 1 | ~416k | 724,160 | 416,032 |
+| `stepDraw` batch 2 | ~361k | 1,448,224 | 523,032 |
+
+Protocol caps: 20M global HCU, 5M depth per tx. Depth grows with the
+winner-count accumulator (~107k per extra ticket in the same batch).
+
+`SortisDraw.DEFAULT_BATCH_SIZE = 8` (~2.9M gas, ~5.8M global HCU, ~1.2M
+depth). 16 would still fit; 8 leaves headroom.
+
+Threat model: root README, tabled against every PRD 3.4 claim, plus an
+honest "what the observer can infer" section (participation public, first
+deposit handle aliasing, keeper can delay but not choose).
+
+Do not "fix" these:
+
+- `WinnerCountInvariantViolated` is unhit in tests. The mock coprocessor
+  will not sign a count of 2 over a well-formed sweep. A keeper who lies
+  about the count fails `checkSignatures` instead. That is the real
+  guarantee; the halt is for ciphertext-math bugs the KMS would then
+  honestly report.
+- Coverage must be run with `SOLIDITY_COVERAGE=true`. `hardhat.config.ts`
+  sets it when argv includes `coverage`, so `npm run coverage` works on
+  Windows.
+
+---
+
+## Next: Phase 7
+
+Sepolia deployment, `SortisFaucet`, both pool configs live, addresses in
+the README and `packages/web/lib/contracts`, Etherscan verification.
+
+Claim/decrypt of `_claimable` is still Phase 11. Frontend wallet/SDK is
+Phase 8.
 
 ---
 
