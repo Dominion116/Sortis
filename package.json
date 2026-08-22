@@ -5,8 +5,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=web",
-    "build": "npm run build --workspace=web",
+    "dev": "node init && npm run dev --workspace=web",
+    "build": "node init && npm run build --workspace=web",
     "lint": "npm run lint --workspace=web",
     "typecheck": "npm run typecheck --workspace=web",
     "contracts:compile": "npm run compile --workspace=contracts",
