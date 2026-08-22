@@ -1,4 +1,5 @@
 import { Countdown } from "@/components/countdown";
+import { explorerAddressUrl, formatAddress, sepolia } from "@/lib/contracts";
 import { MOCK } from "@/lib/mock-data";
 
 export default function DrawLive() {
@@ -24,9 +25,9 @@ export default function DrawLive() {
           </span>
           <Countdown offsetMs={MOCK.nextDrawOffsetMs} size="lg" className="mt-3" />
           <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-muted-foreground">
-            This countdown is illustrative until the contracts are deployed.
-            Once they are live, the demo pool will close a round every five
-            minutes and this clock will track it directly.
+            {sepolia.demo.pool
+              ? "This countdown is still illustrative. The demo pool is live on Sepolia and closes a round every five minutes once the keeper (Phase 10) is running."
+              : "This countdown is illustrative until the contracts are deployed. Once they are live, the demo pool will close a round every five minutes and this clock will track it directly."}
           </p>
         </div>
         <div className="relative overflow-hidden rounded-lg border bg-background p-8 dark:bg-zinc-950">
@@ -46,8 +47,23 @@ export default function DrawLive() {
             </dd>
           </dl>
           <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
-            This round is illustrative. The transaction hash becomes a working
-            Etherscan link as soon as the contracts are deployed to Sepolia.
+            {sepolia.demo.pool ? (
+              <>
+                This settled-round card is still illustrative. No keeper has
+                closed a round yet. The live demo pool is{" "}
+                <a
+                  href={explorerAddressUrl(sepolia.demo.pool)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-mono text-brand hover:underline"
+                >
+                  {formatAddress(sepolia.demo.pool)}
+                </a>
+                .
+              </>
+            ) : (
+              "This round is illustrative. The transaction hash becomes a working Etherscan link as soon as the contracts are deployed to Sepolia."
+            )}
           </p>
         </div>
       </div>

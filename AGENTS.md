@@ -9,8 +9,8 @@ and [`docs/sortis-implementation.docx`](docs/sortis-implementation.docx).
 Source of truth for *what is already true of the contracts*:
 [`packages/contracts/README.md`](packages/contracts/README.md).
 
-**Current status: Phase 6 of 13 complete.** Next is Phase 7 (Sepolia
-deployment, faucet, address publishing).
+**Current status: Phase 7 of 13 complete.** Next is Phase 8 (frontend
+application shell: wallet, FHE SDK bootstrap, `/faucet` route).
 
 ---
 
@@ -150,7 +150,7 @@ Do not "fix" these:
 
 ---
 
-### Phase 6 — Contract test suite, gas, threat model (complete) — this session
+### Phase 6 — Contract test suite, gas, threat model (complete)
 
 89 tests passing. Coverage: 97.1% statements, 98.1% lines, 94.4% functions,
 79.1% branches (`MorphoYieldSource` skipped).
@@ -198,13 +198,91 @@ Do not "fix" these:
 
 ---
 
-## Next: Phase 7
+### Phase 7 — Sepolia deployment, faucet, address publishing (complete) — this session
 
-Sepolia deployment, `SortisFaucet`, both pool configs live, addresses in
-the README and `packages/web/lib/contracts`, Etherscan verification.
+102 tests passing. Everything from Phases 2 to 6 is live on Sepolia, both
+pool configs, all eight contracts verified on Etherscan *and* Sourcify.
 
-Claim/decrypt of `_claimable` is still Phase 11. Frontend wallet/SDK is
-Phase 8.
+Live addresses (chainId 11155111, deployer/keeper
+`0x70f77A5C36eBD667360F6021bF4A95d274B3530e`):
+
+| | address |
+|---|---|
+| cUSDT | `0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b` |
+| faucet | `0xDACEa85f7f8A2F9D80A7278f207C0dFAe16417B0` |
+| demo pool / draw / yield | `0x92aF68…15aF` / `0x89efaA…40A6` / `0x575Cf6…0243` |
+| standard pool / draw / yield | `0x1d7E3E…395F` / `0xD79fAd…2240` / `0x7B5227…C421` |
+
+`packages/contracts/deployments/sepolia.json` is the canonical record. Read
+addresses from there or from the generated
+`packages/web/lib/contracts/addresses.ts`, never by hand-copying.
+
+What landed:
+
+- `SortisFaucet`: `drip()` / `dripTo(address)`, cooldown keyed on the
+  *recipient*, owner-retunable `dripAmount` / `cooldown`, 1,000,000 units per
+  drip on a 1h cooldown as deployed.
+- `ConfidentialUSDT.mint` is no longer `onlyOwner`. Owner *or* the address set
+  by `setFaucet`, else `OnlyMinter`. `setFaucet` is a deploy step; a faucet
+  deployed without it reverts on first drip (test pins it).
+- `scripts/deploy.ts` deploys, wires (`setDrawEngine`, `setPool`,
+  `setYieldSource`), seeds each yield source (1e9 principal allocated +
+  1e10 reserve minted so harvested interest has inventory), opens round 1,
+  writes the deployment JSON, and regenerates the web address module.
+- `scripts/verify.ts`: Sourcify v2 Standard JSON + Etherscan, idempotent,
+  per-target failures logged rather than aborting the run.
+- `scripts/sepolia-smoke.ts`: faucet drip to a freshly generated wallet, then a
+  real relayer-encrypted deposit into the demo pool. This is the "one deposit
+  against Sepolia, not just the mock" exit criterion.
+- Landing page now reads real addresses: `under-the-hood` links each to
+  Etherscan, `draw-live` no longer claims the contracts are undeployed. Both
+  still degrade to "pending deployment" if an address is empty.
+
+Do not "fix" these:
+
+- `etherscan.apiKey` must be a bare string. The `{ sepolia: key }` object form
+  makes hardhat-verify use the retired Etherscan V1 endpoint, which answers
+  every request with a migration notice and verifies nothing. This looked like
+  a working run for a while.
+- `sourcify.enabled: false` in `hardhat.config.ts` is deliberate.
+  hardhat-verify 2.0.13 speaks Sourcify v1 (dead since July 2026);
+  `scripts/verify.ts` does v2 itself.
+- `dotenv.config` is pinned to `path.resolve(__dirname, ".env")`. Bare
+  `dotenv.config()` resolves against cwd, so root-level npm scripts silently
+  loaded nothing and the deployer looked unfunded.
+- `SEPOLIA_RPC_URL` falls back to a public endpoint and the private key is
+  0x-prefixed if the user omitted it. Both are convenience, not sloppiness.
+- The relayer times out fairly often. `encryptWithRetry` handles the awaited
+  case; the `unhandledRejection` handler catches the case where undici rejects
+  on its own timer. `SMOKE_SKIP_FAUCET=1` re-runs only the deposit leg, which
+  also dodges the faucet cooldown.
+- Re-running `deploy:sepolia` deploys a *new* set. It does not upgrade or reuse.
+  If you run it, update the root README table too.
+
+---
+
+## Next: Phase 8
+
+Frontend application shell. Provider tree is `WagmiProvider` (Reown AppKit,
+`ssr: true`, cookie storage) → `QueryClientProvider` → `FhevmProvider`
+(client-only, dynamic import, `ssr: false`), a shared `ready`-gated skeleton
+component for reuse in Phases 9 to 11, network-mismatch detection with
+one-click switch, and the `/faucet` route against the live faucet above.
+
+Per the PRD's own risk mitigation: resolve the Relayer SDK / App Router SSR
+conflict on a throwaway page *before* touching real screens.
+
+Addresses are already committed, so no env plumbing is needed for them.
+`packages/web/lib/contracts/index.ts` already exports `formatAddress`,
+`explorerAddressUrl` and `explorerTxUrl`.
+
+ABIs are not yet published to the web package. Phase 8 needs to decide how
+(copy the TypeChain output, or a small generated module) rather than importing
+across the workspace boundary.
+
+Claim/decrypt of `_claimable` is still Phase 11. The keeper is Phase 10, so
+no round has actually been closed on Sepolia yet: `draw-live` and the mock
+round data stay labelled illustrative until then.
 
 ---
 
@@ -220,4 +298,9 @@ npm run contracts:typecheck
 # from packages/contracts
 REPORT_GAS=true npm run test    # Phase 6 accounting
 npm run coverage                # Phase 6 published number
+
+# Sepolia (needs packages/contracts/.env)
+npm run deploy:sepolia          # deploys a NEW set, rewrites addresses
+npm run verify:sepolia          # idempotent, safe to re-run
+npm run smoke:sepolia           # SMOKE_SKIP_FAUCET=1 to skip the drip leg
 ```
