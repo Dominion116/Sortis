@@ -9,8 +9,8 @@ and [`docs/sortis-implementation.docx`](docs/sortis-implementation.docx).
 Source of truth for *what is already true of the contracts*:
 [`packages/contracts/README.md`](packages/contracts/README.md).
 
-**Current status: Phase 7 of 13 complete.** Next is Phase 8 (frontend
-application shell: wallet, FHE SDK bootstrap, `/faucet` route).
+**Current status: Phase 8 of 13 complete.** Next is Phase 9 (deposit and
+withdraw screens against the live pools).
 
 ---
 
@@ -29,7 +29,7 @@ Bounty: Zama Developer Program, Mainnet Season 4. Deadline 5 September 2026.
 ## Layout
 
 ```
-packages/web         Next.js 16 landing page (Phase 1). App shell is Phase 8+.
+packages/web         Next.js 16 landing page (Phase 1) + app shell (Phase 8).
 packages/contracts   Hardhat + FHEVM mock coprocessor.
 docs/                PRD and the 13-phase plan.
 ```
@@ -198,7 +198,7 @@ Do not "fix" these:
 
 ---
 
-### Phase 7 — Sepolia deployment, faucet, address publishing (complete) — this session
+### Phase 7 — Sepolia deployment, faucet, address publishing (complete)
 
 102 tests passing. Everything from Phases 2 to 6 is live on Sepolia, both
 pool configs, all eight contracts verified on Etherscan *and* Sourcify.
@@ -261,28 +261,117 @@ Do not "fix" these:
 
 ---
 
-## Next: Phase 8
+### Phase 8 — Frontend application shell (complete) — this session
 
-Frontend application shell. Provider tree is `WagmiProvider` (Reown AppKit,
-`ssr: true`, cookie storage) → `QueryClientProvider` → `FhevmProvider`
-(client-only, dynamic import, `ssr: false`), a shared `ready`-gated skeleton
-component for reuse in Phases 9 to 11, network-mismatch detection with
-one-click switch, and the `/faucet` route against the live faucet above.
+The web package can now talk to Sepolia. Provider tree, wallet connection,
+the encryption SDK, and the first real transactional screen all landed.
 
-Per the PRD's own risk mitigation: resolve the Relayer SDK / App Router SSR
-conflict on a throwaway page *before* touching real screens.
+Provider tree, outermost first, all in `components/providers/index.tsx`:
 
-Addresses are already committed, so no env plumbing is needed for them.
-`packages/web/lib/contracts/index.ts` already exports `formatAddress`,
-`explorerAddressUrl` and `explorerTxUrl`.
+`ThemeProvider` (root layout, unchanged) → `WagmiProvider` → `QueryClientProvider`
+→ `FhevmProvider`. The root layout stays a Server Component and reads
+`(await headers()).get("cookie")`, passing it to `Providers`, which feeds
+`cookieToInitialState`. That, plus `ssr: true` and `cookieStorage`, is what
+removes the disconnected-then-connected flash on first paint. `headers()` is
+async in Next.js 16, so the layout is now `async`.
 
-ABIs are not yet published to the web package. Phase 8 needs to decide how
-(copy the TypeChain output, or a small generated module) rather than importing
-across the workspace boundary.
+What landed:
 
-Claim/decrypt of `_claimable` is still Phase 11. The keeper is Phase 10, so
-no round has actually been closed on Sepolia yet: `draw-live` and the mock
-round data stay labelled illustrative until then.
+- **ABI publishing**, the open question from Phase 7. Answer:
+  `packages/contracts/scripts/generate-abis.ts` reads the Hardhat artifacts and
+  writes one generated module, `packages/web/lib/contracts/abis.ts`, with each
+  ABI `as const` so viem infers argument and return types. Run via
+  `npm run contracts:abis`. It is a whitelist of five contracts, not a glob, and
+  only the `abi` field crosses over. TypeChain output was rejected: it is
+  ethers-v6 flavoured and the frontend is on viem.
+- `lib/fhevm/sdk.ts`: memoised, browser-only loader. `await import()` of
+  `@zama-fhe/relayer-sdk/web` inside an async function, a `typeof window`
+  assertion, and a rejection that is deliberately *not* cached so a user who
+  connects a wallet late can retry without a reload.
+- `components/providers/fhevm-provider.tsx`: exposes
+  `{ instance, ready, status, error, reload }`. Bootstrap is gated on
+  `isConnected`, because the SDK needs an injected provider to read the public
+  key. `useFhevm()` returns an inert `idle` value instead of throwing when no
+  provider is mounted, which matters because `ssr: false` means the first client
+  render of every page happens before the provider exists.
+- `components/app/encrypted-gate.tsx`: the shared `ready`-gate for Phases 9 to
+  11. Four states (idle / loading / error+retry / ready) and an exported
+  `Skeleton`. Wrap only ciphertext-dependent subtrees in it.
+- `components/app/network-guard.tsx`: banner plus `useNetworkMismatch()`, so a
+  form can disable its submit button on the same condition the banner renders
+  on. Renders nothing when disconnected: no wallet is not the wrong network.
+- `components/app/connect-button.tsx`, `(app)/` route group with its own layout,
+  `config/app.ts`.
+- `/faucet`: live `drip()` against `0xDACEa8…17B0`, reading `dripAmount` and
+  `readyAt(address)`, with a ticking local countdown, mapped revert messages
+  (`CooldownNotElapsed`, `OnlyMinter`, user rejection, gas), and an Etherscan
+  link on success. Deliberately **not** wrapped in `EncryptedGate`: minting is
+  the one public operation, and gating it behind WASM would be wrong. The page
+  says so in copy.
+- `/diagnostics`: the throwaway SSR page the PRD's risk mitigation asks for,
+  kept rather than deleted, `noindex`. Seven rows: server render, wallet,
+  WalletConnect, network, a public Sepolia read, Relayer SDK, addresses.
+- `tsconfig.json` target moved ES2017 → **ES2020**. viem and wagmi require
+  BigInt literals; the template's ES2017 target rejected `10n`.
+- `npm run typecheck` now exists for the web workspace, and at the root.
+
+Do not "fix" these:
+
+- `ConnectButton` reads AppKit's `modal` export, not the `useAppKit()` hook.
+  The hook *throws* "Please call createAppKit before using useAppKit" whenever
+  the modal has not been created, which is true during the server pass and in
+  the no-project-id fallback. A throwing hook takes the tree down. Optional
+  chaining on `modal` is the fix, not a smell.
+- `createAppKit` is called at module scope guarded by
+  `typeof window !== "undefined" && projectId`, not inside a component. In a
+  render pass it registers duplicate WalletConnect listeners.
+- `NEXT_PUBLIC_REOWN_PROJECT_ID` is optional and absence is *not* fatal.
+  `walletConnectReady` is false, `createAppKit` is skipped, and the connect
+  button falls back to the injected connector so a fresh clone still works with
+  MetaMask. See `packages/web/.env.example`.
+- `FhevmProvider` derives `status` from `isConnected` in `useMemo` rather than
+  calling `setState` in the disconnect branch of its effect. The
+  `react-hooks/set-state-in-effect` lint rule flagged the original and was
+  right: it was a cascading render.
+- Two `as never` casts are load bearing and both are commented in place:
+  wagmi's `createStorage` return versus AppKit's wider `Storage` key space, and
+  the SDK's unexported `Eip1193Provider`. Neither is a runtime mismatch.
+- `window.ethereum` is read through a local cast, not a `declare global`.
+  Another dependency in the graph already declares it as
+  `Record<string, unknown>`, so re-declaring is a duplicate-declaration error.
+- `/faucet` appears in *both* `config/marketing.ts` and `config/app.ts`.
+  `/app` and `/app/draws` are intentionally absent until they exist.
+
+Verified with `tsc --noEmit` and `eslint`, both clean. `next build` was not run
+locally this session at the user's request; it runs on Vercel.
+
+---
+
+## Next: Phase 9
+
+Deposit and withdraw screens against the live pools. This is the first use of
+`EncryptedGate` in anger, and the first time the frontend produces a ciphertext
+rather than only reading plaintext views.
+
+Already in place, do not rebuild: the provider tree, `useFhevm()`,
+`EncryptedGate` + `Skeleton`, `NetworkGuard` + `useNetworkMismatch()`,
+`ConnectButton`, the `(app)/` route group and its layout, `formatTokenAmount`,
+and `sortisPoolAbi` / `confidentialUsdtAbi` in `lib/contracts`.
+
+Regenerate ABIs with `npm run contracts:abis` if a contract's interface changes.
+
+Deposit needs `createEncryptedInput` → `add64` → `encrypt`, then the pool's
+`deposit(externalEuint64, bytes)` path, and an ERC-7984 operator authorisation
+before the first deposit. Balance display needs `userDecrypt`, which needs an
+EIP-712 signature, so budget for that being a second wallet prompt.
+
+Remember the Phase 3 finding: on a first deposit the user's balance handle and
+the ticket `cumulative` handle are the same handle. Harmless, but do not build
+UI that assumes two distinct handles imply two distinct values.
+
+The keeper is Phase 10 and claim/decrypt of `_claimable` is Phase 11, so no
+round has been closed on Sepolia yet. `draw-live` and the mock round data stay
+labelled illustrative until then.
 
 ---
 
@@ -290,7 +379,11 @@ round data stay labelled illustrative until then.
 
 ```bash
 # from repo root
+npm run dev                     # web on :3000
+npm run lint                    # web eslint
+npm run typecheck               # web tsc --noEmit
 npm run contracts:compile
+npm run contracts:abis          # regenerate packages/web/lib/contracts/abis.ts
 npm run contracts:test
 npm run contracts:lint
 npm run contracts:typecheck

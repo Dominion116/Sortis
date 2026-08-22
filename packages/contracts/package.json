@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "compile": "hardhat compile",
+    "abis": "ts-node --project tsconfig.json scripts/generate-abis.ts",
     "clean": "hardhat clean",
     "test": "hardhat test",
     "test:sepolia": "hardhat test --network sepolia",
