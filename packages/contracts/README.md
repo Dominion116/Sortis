@@ -5,14 +5,13 @@ state and the draw itself are implemented with [`@fhevm/solidity`](https://docs.
 on the Zama Protocol; the pool's token is ERC-7984 via OpenZeppelin's
 confidential contracts.
 
-> **Status: Phase 6 of 13 complete.** The contract suite is past "it works":
-> every encrypted path is under test against the mock coprocessor, including a
-> property test that a random value across the full range selects exactly one
-> active ticket, and a storage-diff test that losers' claimable slots are
-> rewritten on every draw. Sweep gas and HCU are measured; the keeper default
-> batch size is 8. Statement coverage is 97.1% (98.1% of lines). The threat
-> model lives in the root README and is checked against PRD 3.4. Phase 7 is
-> Sepolia deployment, the faucet, and publishing addresses.
+> **Status: Phase 7 of 13 complete.** The contracts are live on Sepolia, both
+> pool configurations, verified on Etherscan and Sourcify. Addresses are in
+> [`deployments/sepolia.json`](deployments/sepolia.json), the root README, and
+> the generated `packages/web/lib/contracts/addresses.ts`. `npm run smoke:sepolia`
+> proves the encrypted deposit path against the real coprocessor and relayer,
+> not just the mock. 102 tests passing, 97.1% statement coverage, threat model
+> in the root README. Phase 8 is the frontend shell: wallet plus SDK bootstrap.
 
 
 ## Layout
@@ -25,8 +24,12 @@ contracts/
   token/ConfidentialUSDT.sol  ERC-7984 test token (cUSDT)
   yields/MockYieldSource.sol  Sepolia only, simulated accrual
   yields/MorphoYieldSource.sol Mainnet path, deliberately not deployed
+  SortisFaucet.sol            Cooldown-gated cUSDT drip for reviewers
 test/                         Mocha + chai against the FHEVM mock coprocessor
-scripts/deploy.ts             Deployment and wiring
+scripts/deploy.ts             Deployment, wiring, seeding, address publishing
+scripts/verify.ts             Sourcify v2 + Etherscan verification
+scripts/sepolia-smoke.ts      Live faucet drip and encrypted deposit
+deployments/sepolia.json      Canonical record of what is deployed where
 ```
 
 The directory is `yields/`, not `yield/`, because TypeChain generates
@@ -57,7 +60,9 @@ Run from `packages/contracts`, or from the root with `npm run <script> --workspa
 | `npm run typecheck` | `tsc --noEmit` over config, tests and deploy scripts |
 | `npm run coverage` | solidity-coverage against the mock (set `SOLIDITY_COVERAGE=true`, or just run this: `hardhat.config.ts` sets it when the coverage task is invoked) |
 | `REPORT_GAS=true npm run test` | Adds the hardhat-gas-reporter table |
-| `npm run deploy:sepolia` | Deploy and wire the contract set (Phase 7) |
+| `npm run deploy:sepolia` | Deploy and wire the whole set, seed the yield reserves, open round 1, write `deployments/sepolia.json` and the web address module |
+| `npm run verify:sepolia` | Verify every address in `deployments/sepolia.json` on Sourcify v2 and Etherscan. Idempotent, safe to re-run |
+| `npm run smoke:sepolia` | Live integration: faucet drip to a fresh address, then an encrypted deposit into the demo pool |
 
 ## Toolchain notes
 
@@ -257,5 +262,47 @@ somebody else's deposit is unreadable by everyone.
       `WinnerCountInvariantViolated`, which requires the KMS to sign a count
       the coprocessor never produces
 - [x] `solhint` reports zero problems and `tsc --noEmit` is clean
+
+## Phase 7 exit criteria
+
+- [x] `hardhat compile` and `hardhat test` succeed — 102 passing
+- [x] All eight contracts live on Sepolia and verified on both Etherscan and
+      Sourcify. Addresses in [`deployments/sepolia.json`](deployments/sepolia.json),
+      the root README, and `packages/web/lib/contracts/addresses.ts`
+- [x] Both pool configurations deployed and wired: demo (300s) and standard (24h),
+      each with its own `MockYieldSource`, each with round 1 already open
+- [x] Yield reserves pre-funded, so a demo draw pays a real prize immediately
+      rather than waiting for depositors to arrive
+- [x] `SortisFaucet` mints test cUSDT to a freshly generated address end to end,
+      confirmed on Sepolia with a non-zero balance handle
+- [x] One deposit completed against Sepolia, not the mock: `smoke:sepolia`
+      encrypts through the live relayer and appends a ticket in the demo pool
+- [x] `solhint` reports zero problems and `tsc --noEmit` is clean
+
+Notes for whoever runs this next:
+
+- **`ConfidentialUSDT.mint` is no longer `onlyOwner`.** It accepts the owner *or*
+  the address set by `setFaucet`, reverting `OnlyMinter` otherwise. The faucet
+  needs the plaintext-amount path because a drip amount is a well-known constant,
+  and encrypting it would buy coprocessor cost instead of privacy. `setFaucet` is
+  part of deployment; a faucet deployed without it reverts on the first drip, and
+  a test pins that.
+- **The faucet cooldown is keyed on the recipient, not the caller.** Otherwise
+  `dripTo` from a second wallet would top up an address that just claimed.
+- **`etherscan.apiKey` must be a bare string.** The `{ sepolia: key }` object form
+  makes hardhat-verify fall back to the retired Etherscan V1 endpoint, which
+  returns a migration notice for every request and silently verifies nothing.
+- **Sourcify is driven by `scripts/verify.ts` against the v2 API**, because
+  hardhat-verify 2.0.13 still speaks Sourcify v1. The plugin's own `sourcify`
+  path is switched off so the two do not both try. Verification is idempotent:
+  it checks for an existing match before posting.
+- **The relayer can time out during `smoke:sepolia`.** The encrypt call has a
+  retry, but the relayer's HTTP client can also reject outside the await chain,
+  which is why there is an `unhandledRejection` handler. Re-run with
+  `SMOKE_SKIP_FAUCET=1` to retry only the deposit leg and skip the cooldown.
+- **Re-running `deploy:sepolia` deploys a whole new set**, it does not reuse or
+  upgrade the existing addresses. Deliberate, since redeploying is how a broken
+  testnet round gets abandoned, but it does mean the README and `addresses.ts`
+  both change and the old pools keep running.
 
 
