@@ -17,7 +17,7 @@ export const MOCK = {
     txHash: "0x7f3a9c2e1b4d8f6a0c5e9b2d7a1f4c8e3b6d9a2f5c8e1b4d7a0f3c6e9b2d5a8f",
   },
 
-  coverage: "TBD", // real number lands with Phase 6
+  coverage: "97.1%",
   deployedAddresses: {
     pool: null as string | null,
     draw: null as string | null,

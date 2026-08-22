@@ -11,7 +11,7 @@ Balances, deposits and winnings are encrypted end to end using fully homomorphic
 | **Program** | [Zama Developer Program, Mainnet Season 4](https://www.zama.org/post/zama-developer-program-mainnet-season-4), Bounty Track |
 | **Submission deadline** | 5 September 2026, 23:59 AOE |
 | **Target network** | Ethereum Sepolia |
-| **Status** | In development, Phase 6 of 13 complete (contract test suite, gas, threat model) — see [Implementation Plan](docs/implementation-plan.md) |
+| **Status** | In development, Phase 7 of 13 complete (live on Sepolia, verified, faucet open) — see [Implementation Plan](docs/implementation-plan.md) |
 
 ---
 
@@ -168,7 +168,7 @@ sortis/
 
 ## Getting started
 
-> The workspace is being built out phase by phase — see the [implementation plan](docs/implementation-plan.md) for current status. The monorepo, the contracts workspace, confidential deposits, withdrawals, the mock yield source and the draw engine exist under test, with a published coverage figure and a documented threat model. Phase 7 is Sepolia deployment.
+> The workspace is being built out phase by phase (see the [implementation plan](docs/implementation-plan.md) for current status). The contracts are live and verified on Sepolia, both pool configurations are running, and the faucet mints test tokens to any address. What is not built yet is the app itself: wallet connection and the FHE SDK bootstrap are Phase 8, so today the contracts are reachable through the scripts below rather than through a UI.
 
 
 ### Prerequisites
@@ -191,9 +191,10 @@ npm install
 Contracts (`packages/contracts/.env`):
 
 ```bash
-SEPOLIA_RPC_URL=
-DEPLOYER_PRIVATE_KEY=
-ETHERSCAN_API_KEY=
+SEPOLIA_RPC_URL=          # optional, falls back to a public Sepolia endpoint
+DEPLOYER_PRIVATE_KEY=     # throwaway testnet key only
+KEEPER_ADDRESS=           # optional, defaults to the deployer
+ETHERSCAN_API_KEY=        # optional, Sourcify verification runs without it
 ```
 
 Web (`packages/web/.env.local`):
@@ -201,22 +202,25 @@ Web (`packages/web/.env.local`):
 ```bash
 NEXT_PUBLIC_REOWN_PROJECT_ID=
 NEXT_PUBLIC_SEPOLIA_RPC_URL=
-NEXT_PUBLIC_POOL_ADDRESS=
-NEXT_PUBLIC_DRAW_ADDRESS=
-NEXT_PUBLIC_FAUCET_ADDRESS=
 NEXT_PUBLIC_RELAYER_URL=
 ```
+
+Contract addresses are not environment variables. `deploy:sepolia` writes them into `packages/web/lib/contracts/addresses.ts`, which is committed, so a checkout points at the live deployment with no configuration.
 
 ### Run contracts
 
 ```bash
 cd packages/contracts
 npm run compile
-npm run test                     # 89 passing, against the mock coprocessor
+npm run test                     # 102 passing, against the mock coprocessor
 npm run lint && npm run typecheck
 
-npm run deploy:sepolia           # Phase 7
+npm run deploy:sepolia           # deploy both pool configs, write deployments/sepolia.json
+npm run verify:sepolia           # Sourcify v2 plus Etherscan, idempotent
+npm run smoke:sepolia            # faucet drip to a fresh address, then a live deposit
 ```
+
+`deploy:sepolia` also regenerates `packages/web/lib/contracts/addresses.ts`, so the frontend never carries hand-copied addresses. Note that re-running it deploys a *new* set of contracts rather than reusing the existing ones. The addresses below are already live, so there is no need to redeploy to try the protocol.
 
 ### Run the web app
 
@@ -232,7 +236,8 @@ npm run dev
 - An explicit test that the voided-ticket case produces a rollover rather than a silent failure or double credit
 - A test asserting that losers' storage slots are rewritten on every draw. A regression here would silently destroy the privacy guarantee
 - Gas and HCU measurement per ticket for the sweep, used to set `DEFAULT_BATCH_SIZE = 8` (see [contracts README](packages/contracts/README.md#gas-and-hcu-accounting))
-- An integration test on Sepolia covering deposit → round close → draw → claim → withdraw as one sequence (Phase 7 / 12)
+- `npm run smoke:sepolia`, which drips the faucet to a freshly generated address and puts a real encrypted deposit through the live demo pool, so the encrypted path is proven against the actual coprocessor and relayer rather than only the mock
+- A full integration run on Sepolia covering deposit → round close → draw → claim → withdraw as one sequence lands with the keeper (Phase 10) and end-to-end QA (Phase 12)
 
 **Coverage** (solidity-coverage against the mock coprocessor, `MorphoYieldSource` skipped as a documented stub):
 
@@ -244,12 +249,34 @@ The one revert the suite does not hit is `WinnerCountInvariantViolated`, which r
 
 ## Deployed contracts (Sepolia)
 
+Every contract below is verified on both Etherscan and Sourcify, so the source you read is the source that runs. The canonical machine-readable record is [`packages/contracts/deployments/sepolia.json`](packages/contracts/deployments/sepolia.json), which is what generates [`packages/web/lib/contracts/addresses.ts`](packages/web/lib/contracts/addresses.ts).
+
+Shared:
+
 | Contract | Address |
 |---|---|
-| `SortisPool` | _pending deployment_ |
-| `SortisDraw` | _pending deployment_ |
-| `SortisFaucet` | _pending deployment_ |
-| Confidential token (cUSDT) | _pending deployment_ |
+| Confidential token (cUSDT) | [`0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b`](https://sepolia.etherscan.io/address/0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b) |
+| `SortisFaucet` | [`0xDACEa85f7f8A2F9D80A7278f207C0dFAe16417B0`](https://sepolia.etherscan.io/address/0xDACEa85f7f8A2F9D80A7278f207C0dFAe16417B0) |
+
+Demo pool, one round every 5 minutes, so a reviewer arriving at a random moment is never far from a complete draw:
+
+| Contract | Address |
+|---|---|
+| `SortisPool` | [`0x92aF68E6823D22D5Bd5B8746f1c52b87CE3315aF`](https://sepolia.etherscan.io/address/0x92aF68E6823D22D5Bd5B8746f1c52b87CE3315aF) |
+| `SortisDraw` | [`0x89efaA363468478aeB5CAaf80e21680B129F40A6`](https://sepolia.etherscan.io/address/0x89efaA363468478aeB5CAaf80e21680B129F40A6) |
+| `MockYieldSource` | [`0x575Cf61C0FB339D469582fE45219E4bF40e60243`](https://sepolia.etherscan.io/address/0x575Cf61C0FB339D469582fE45219E4bF40e60243) |
+
+Standard pool, one round every 24 hours, the round length a real savings product would use:
+
+| Contract | Address |
+|---|---|
+| `SortisPool` | [`0x1d7E3ED492D6204A25b7B7a0bbE6C9943555395F`](https://sepolia.etherscan.io/address/0x1d7E3ED492D6204A25b7B7a0bbE6C9943555395F) |
+| `SortisDraw` | [`0xD79fAd0748D999e9274470f8F3b64571D9e12240`](https://sepolia.etherscan.io/address/0xD79fAd0748D999e9274470f8F3b64571D9e12240) |
+| `MockYieldSource` | [`0x7B5227267356f91ff2Cb3306C3ee5b6aBa97C421`](https://sepolia.etherscan.io/address/0x7B5227267356f91ff2Cb3306C3ee5b6aBa97C421) |
+
+`MorphoYieldSource` is intentionally not deployed. It is the documented mainnet path, and a contract that reverts on every call would only be noise on a block explorer.
+
+Each `MockYieldSource` is pre-funded, so a demo draw pays a real prize immediately rather than waiting for a depositor base to build up. Every prize figure is labelled **simulated testnet yield**.
 
 ## Verifiability & threat model
 

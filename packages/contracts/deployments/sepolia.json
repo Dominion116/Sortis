@@ -1,0 +1,76 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
+  "keeper": "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
+  "deployedAt": "2026-08-22T08:05:14.167Z",
+  "token": {
+    "address": "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+    "args": [
+      "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+    ]
+  },
+  "faucet": {
+    "address": "0xDACEa85f7f8A2F9D80A7278f207C0dFAe16417B0",
+    "args": [
+      "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+      1000000,
+      3600,
+      "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+    ]
+  },
+  "demo": {
+    "roundDuration": 300,
+    "yieldSource": {
+      "address": "0x575Cf61C0FB339D469582fE45219E4bF40e60243",
+      "args": [
+        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        2000,
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+      ]
+    },
+    "pool": {
+      "address": "0x92aF68E6823D22D5Bd5B8746f1c52b87CE3315aF",
+      "args": [
+        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        300,
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+      ]
+    },
+    "draw": {
+      "address": "0x89efaA363468478aeB5CAaf80e21680B129F40A6",
+      "args": [
+        "0x92aF68E6823D22D5Bd5B8746f1c52b87CE3315aF",
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+      ]
+    }
+  },
+  "standard": {
+    "roundDuration": 86400,
+    "yieldSource": {
+      "address": "0x7B5227267356f91ff2Cb3306C3ee5b6aBa97C421",
+      "args": [
+        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        2000,
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+      ]
+    },
+    "pool": {
+      "address": "0x1d7E3ED492D6204A25b7B7a0bbE6C9943555395F",
+      "args": [
+        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        86400,
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+      ]
+    },
+    "draw": {
+      "address": "0xD79fAd0748D999e9274470f8F3b64571D9e12240",
+      "args": [
+        "0x1d7E3ED492D6204A25b7B7a0bbE6C9943555395F",
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
+        "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
+      ]
+    }
+  }
+}

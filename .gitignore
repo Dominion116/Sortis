@@ -15,12 +15,7 @@ node_modules/
 !.yarn/versions
 
 # --- Environment / secrets ---
-.env
-.env.local
 .env.*.local
-.env.development
-.env.production
-.env.test
 packages/**/.env
 packages/**/.env.*
 !.env.example
@@ -54,7 +49,6 @@ Thumbs.db
 desktop.ini
 
 # --- Editor / IDE ---
-.vscode/*
 !.vscode/extensions.json
 .idea/
 *.swp
@@ -71,3 +65,4 @@ desktop.ini
 mnemonic.txt
 .codex/
 .claude/
+config.bat

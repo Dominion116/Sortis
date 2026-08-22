@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
     "deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
-    "verify:sepolia": "hardhat verify --network sepolia"
+    "verify:sepolia": "hardhat run scripts/verify.ts --network sepolia",
+    "smoke:sepolia": "hardhat run scripts/sepolia-smoke.ts --network sepolia"
   },
   "devDependencies": {
     "@fhevm/hardhat-plugin": "0.4.2",
