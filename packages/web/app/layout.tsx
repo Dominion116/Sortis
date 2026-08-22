@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Inter as FontSans } from "next/font/google";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "@/components/providers";
 import { siteConfig } from "@/config/site";
 
 import "./globals.css";
@@ -62,7 +64,11 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Read the cookie server-side and hand it to wagmi so the first paint
+  // already reflects a connected wallet. `headers()` is async in Next.js 16.
+  const cookie = (await headers()).get("cookie");
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head />
@@ -78,7 +84,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <Providers cookie={cookie}>{children}</Providers>
         </ThemeProvider>
       </body>
     </html>
