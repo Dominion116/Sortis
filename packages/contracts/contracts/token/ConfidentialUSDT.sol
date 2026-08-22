@@ -18,21 +18,42 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  *      is built on top of it. Getting the standard wrong later is expensive.
  */
 contract ConfidentialUSDT is ERC7984, ZamaEthereumConfig, Ownable {
+    /// @notice Thrown when a caller other than the owner or the configured faucet mints.
+    error OnlyMinter();
+
+    /// @notice The faucet contract permitted to mint test tokens. Unset is address(0).
+    address public faucet;
+
     /// @notice Emitted on a plaintext-amount mint, for test and faucet traceability.
     event Minted(address indexed to, uint64 amount);
+
+    /// @notice Emitted when the authorised faucet address changes.
+    event FaucetUpdated(address indexed previousFaucet, address indexed newFaucet);
 
     constructor(
         address initialOwner
     ) ERC7984("Confidential USDT", "cUSDT", "https://sortis.app/tokens/cusdt.json") Ownable(initialOwner) {}
 
     /**
-     * @notice Mint from a plaintext amount, trivially encrypted on chain.
-     * @dev Used by tests, deploy seeding, and (in Phase 7) `SortisFaucet`. The
-     *      amount is public here by construction, which is fine: minting test
-     *      tokens to yourself reveals nothing about pool behaviour. Confidential
-     *      amounts are only meaningful once value moves between users.
+     * @notice Point the plaintext mint at a faucet, or at `address(0)` to revoke it.
+     * @dev Owner keeps `mintConfidential` and can still mint. The faucet only needs
+     *      the public-amount path, because a drip amount is a well-known constant.
      */
-    function mint(address to, uint64 amount) external onlyOwner returns (euint64) {
+    function setFaucet(address newFaucet) external onlyOwner {
+        emit FaucetUpdated(faucet, newFaucet);
+        faucet = newFaucet;
+    }
+
+    /**
+     * @notice Mint from a plaintext amount, trivially encrypted on chain.
+     * @dev Used by tests, deploy seeding, and `SortisFaucet`. The amount is public
+     *      here by construction, which is fine: minting test tokens to yourself
+     *      reveals nothing about pool behaviour. Confidential amounts are only
+     *      meaningful once value moves between users.
+     */
+    function mint(address to, uint64 amount) external returns (euint64) {
+        if (msg.sender != owner() && msg.sender != faucet) revert OnlyMinter();
+
         euint64 encryptedAmount = FHE.asEuint64(amount);
         FHE.allowThis(encryptedAmount);
 

@@ -13,6 +13,8 @@
     "contracts:lint": "npm run lint --workspace=contracts",
     "contracts:typecheck": "npm run typecheck --workspace=contracts",
     "contracts:coverage": "npm run coverage --workspace=contracts",
-    "contracts:deploy:sepolia": "npm run deploy:sepolia --workspace=contracts"
+    "contracts:deploy:sepolia": "npm run deploy:sepolia --workspace=contracts",
+    "contracts:verify:sepolia": "npm run verify:sepolia --workspace=contracts",
+    "contracts:smoke:sepolia": "npm run smoke:sepolia --workspace=contracts"
   }
 }

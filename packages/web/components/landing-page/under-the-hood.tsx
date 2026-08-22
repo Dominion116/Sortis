@@ -1,4 +1,9 @@
 import { MOCK } from "@/lib/mock-data";
+import {
+  explorerAddressUrl,
+  formatAddress,
+  sepolia,
+} from "@/lib/contracts";
 
 const FACTS = [
   { label: "Encryption", value: "Zama Protocol, fully homomorphic encryption" },
@@ -13,14 +18,36 @@ const FACTS = [
   },
 ];
 
-const ADDRESSES = [
-  { label: "SortisPool", value: MOCK.deployedAddresses.pool },
-  { label: "SortisDraw", value: MOCK.deployedAddresses.draw },
-  { label: "SortisFaucet", value: MOCK.deployedAddresses.faucet },
-  { label: "Confidential token (cUSDT)", value: MOCK.deployedAddresses.token },
+const ADDRESSES: { label: string; value: string | null }[] = [
+  { label: "Confidential token (cUSDT)", value: sepolia.token },
+  { label: "SortisFaucet", value: sepolia.faucet },
+  { label: "Demo pool", value: sepolia.demo.pool },
+  { label: "Demo draw", value: sepolia.demo.draw },
+  { label: "Standard pool", value: sepolia.standard.pool },
+  { label: "Standard draw", value: sepolia.standard.draw },
 ];
 
+function AddressValue({ address }: { address: string | null }) {
+  if (!address) {
+    return <span className="font-mono text-xs text-muted-foreground">pending deployment</span>;
+  }
+
+  return (
+    <a
+      href={explorerAddressUrl(address)}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={address}
+      className="font-mono text-xs text-brand hover:underline"
+    >
+      {formatAddress(address)}
+    </a>
+  );
+}
+
 export default function UnderTheHood() {
+  const live = Boolean(sepolia.token);
+
   return (
     <section
       id="under-the-hood"
@@ -51,9 +78,9 @@ export default function UnderTheHood() {
             <div className="grid grid-cols-[9rem_1fr] gap-4 py-4 text-sm">
               <dt className="text-muted-foreground">Test coverage</dt>
               <dd className="tabular font-mono text-foreground">
-                {MOCK.coverage}{" "}
+                {MOCK.coverage} statements{" "}
                 <span className="font-sans text-xs text-muted-foreground">
-                  (lands with the contract suite)
+                  (solidity-coverage, mock coprocessor)
                 </span>
               </dd>
             </div>
@@ -81,16 +108,16 @@ export default function UnderTheHood() {
                 className="grid grid-cols-[1fr_auto] items-center gap-4 py-4 text-sm"
               >
                 <dt className="text-foreground">{addr.label}</dt>
-                <dd className="font-mono text-xs text-muted-foreground">
-                  {addr.value ?? "pending deployment"}
+                <dd>
+                  <AddressValue address={addr.value} />
                 </dd>
               </div>
             ))}
           </dl>
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            These addresses are filled in when the contracts are deployed to
-            Sepolia, and every one of them is verified on Etherscan so the
-            source you read is the source that runs.
+            {live
+              ? "Each address opens Sepolia Etherscan. The contracts are verified, so the source you read is the source that runs."
+              : "These addresses are filled in when the contracts are deployed to Sepolia, and every one of them is verified on Etherscan so the source you read is the source that runs."}
           </p>
         </div>
       </div>

@@ -91,10 +91,25 @@ describe("Phase 2 — ConfidentialUSDT (ERC-7984)", function () {
     await expect(fhevm.userDecryptEuint(FhevmType.euint64, handle, tokenAddress, bob)).to.be.rejected;
   });
 
-  it("restricts minting to the owner", async function () {
-    await expect(token.connect(alice).mint(alice.address, 1n)).to.be.revertedWithCustomError(
-      token,
-      "OwnableUnauthorizedAccount",
-    );
+  it("restricts minting to the owner until a faucet is authorised", async function () {
+    await expect(token.connect(alice).mint(alice.address, 1n)).to.be.revertedWithCustomError(token, "OnlyMinter");
+  });
+
+  it("lets the configured faucet mint while the owner still can", async function () {
+    await (await token.connect(deployer).setFaucet(bob.address)).wait();
+
+    await (await token.connect(bob).mint(alice.address, 10n)).wait();
+    await (await token.connect(deployer).mint(alice.address, 5n)).wait();
+
+    const handle = await token.confidentialBalanceOf(alice.address);
+    const clear = await fhevm.userDecryptEuint(FhevmType.euint64, handle, tokenAddress, alice);
+    expect(clear).to.equal(15n);
+  });
+
+  it("stops a revoked faucet from minting", async function () {
+    await (await token.connect(deployer).setFaucet(bob.address)).wait();
+    await (await token.connect(deployer).setFaucet(ethers.ZeroAddress)).wait();
+
+    await expect(token.connect(bob).mint(alice.address, 1n)).to.be.revertedWithCustomError(token, "OnlyMinter");
   });
 });
