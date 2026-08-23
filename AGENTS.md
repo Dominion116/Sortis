@@ -451,6 +451,26 @@ Verified with web typecheck, ESLint, and `next typegen`. `next build` was not ru
 
 Do not collapse `Awaiting oracle` into a generic loading or sweep state, and do not make the keeper perform multiple transitions in one request.
 
+Route placement fix (post-Phase 10): the Draws page had shipped at
+`app/(app)/draws/page.tsx`, which resolves to `/draws`, while `config/app.ts`
+and every doc link point at `/app/draws`. The nav item was a live 404. It now
+lives at `app/(app)/app/draws/page.tsx`. This is the same route-group trap
+recorded under Phase 9: `(app)` contributes no URL segment, so the `/app`
+prefix has to be a real directory. When adding a route under `(app)`, verify
+the resolved path rather than assuming the group supplies the prefix.
+
+This surfaced as a console error, not a broken link:
+`Error checking Cross-Origin-Opener-Policy: "HTTP error! status: 404"`.
+`@coinbase/wallet-sdk` (pulled in by AppKit's default connector set) fetches
+`window.location.origin + window.location.pathname` with `method: "HEAD"` on
+init to read the COOP header, and logs that when the response is not ok. The
+message names COOP but the status code is about the URL, so on any 404 route
+the SDK reports it as a COOP problem. Treat it as a route assertion: check the
+current path's `HEAD` status before touching headers, `middleware.ts`, or
+`enableCoinbase`. Nothing about COOP needed changing here, and no COOP header
+is set anywhere in the app.
+
+
 ### Next: Phase 11
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
