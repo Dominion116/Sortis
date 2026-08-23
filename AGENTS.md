@@ -340,7 +340,8 @@ Do not "fix" these:
   Another dependency in the graph already declares it as
   `Record<string, unknown>`, so re-declaring is a duplicate-declaration error.
 - `/faucet` appears in *both* `config/marketing.ts` and `config/app.ts`.
-  `/app` and `/app/draws` are intentionally absent until they exist.
+  `/app/draws` is intentionally absent until it exists. (`/app` landed in
+  Phase 9 and is now listed.)
 
 Verified with `tsc --noEmit` and `eslint`, both clean. `next build` was not run
 locally this session at the user's request; it runs on Vercel.
@@ -404,6 +405,21 @@ What landed:
   `CiphertextReveal` animation is used once a live decrypted balance exists;
   the pre-decryption state stays masked and non-interactive.
 
+Route placement, corrected after Phase 9: the pool screen is
+`app/(app)/app/page.tsx`, so it resolves to `/app`. It must **not** be
+`app/(app)/page.tsx`. Route groups in parentheses contribute no URL segment, so
+a root `page.tsx` inside `(app)` resolves to `/` and collides with
+`app/(marketing)/page.tsx`, which is the real landing page. Next.js reports this
+as two parallel pages resolving to the same path. `(app)` therefore holds no
+root `page.tsx`; every route under it owns an explicit directory segment
+(`app/`, `faucet/`, `diagnostics/`).
+
+If you delete or move a route, the generated types under `.next` keep pointing
+at the old file and `tsc --noEmit` fails on a path that no longer exists. Run
+`npm exec --workspace=web -- next typegen` to regenerate them; a full build is
+not required. Successful typegen is also a cheap check that no two routes
+collide.
+
 Do not "fix" these:
 
 - Ticket ownership is public and is read with `ticketAt`; ticket amount and
@@ -423,16 +439,21 @@ user's instruction, `next build` was not run locally.
 
 ---
 
-## Next: Phase 10
+### Phase 10 — Draws, live sweep progress & keeper (complete)
 
-Build `/app/draws`, the event-log-backed round history, countdown, distinct
-oracle-pending state, live batched sweep progress, and the authenticated Vercel
-Cron keeper route. Reuse the Phase 9 pool selector/address model rather than
-creating a second source of pool configuration.
+`/app/draws` reads both deployed Sepolia draw engines through viem and TanStack Query. It shows the current round countdown, explicit awaiting-oracle copy, live encrypted sweep cursor progress, prize/ticket metadata, and recent settled rounds decoded from `ErnieSettled` logs. Both pools reuse the canonical generated address module.
 
-The Sepolia rounds have still not been closed by the frontend. Do not relabel
-landing-page illustrative draw data as live until the Phase 10 keeper completes
-at least one full real round.
+`/api/cron/keeper` is a Node runtime route protected by `Authorization: Bearer $CRON_SECRET`. It advances each pool by at most one state transition per invocation (open, close, public-decrypt total, draw sweep batch, or public-decrypt and settle), making retries idempotent. It holds `SORTIS_KEEPER_PRIVATE_KEY`, uses Sepolia RPC, and obtains FHEVM 0.11 public-decryption proofs with `@zama-fhe/relayer-sdk/node`. `vercel.json` schedules it every minute.
+
+Required Vercel environment variables: `CRON_SECRET`, `SORTIS_KEEPER_PRIVATE_KEY`, `NEXT_PUBLIC_SEPOLIA_RPC_URL` (optional fallback exists), and `ZAMA_FHEVM_API_KEY` when the relayer requires authentication. Event history is bounded to the latest 100,000 blocks for public RPC reliability; current state remains live without a database or indexer.
+
+Verified with web typecheck, ESLint, and `next typegen`. `next build` was not run locally by instruction.
+
+Do not collapse `Awaiting oracle` into a generic loading or sweep state, and do not make the keeper perform multiple transitions in one request.
+
+### Next: Phase 11
+
+Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
 
 ---
 

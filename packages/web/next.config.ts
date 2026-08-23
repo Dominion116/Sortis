@@ -12,6 +12,7 @@ const configuredDevOrigins = (process.env.SORTIS_DEV_ORIGINS ?? "")
   .filter(Boolean);
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["@zama-fhe/relayer-sdk"],
   // Permit HMR and other dev-only assets when the site is opened from a phone
   // using this machine's LAN address. Extra hostnames can be comma-separated.
   allowedDevOrigins: [...new Set([...lanAddresses, ...configuredDevOrigins])],
