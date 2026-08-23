@@ -345,6 +345,14 @@ Do not "fix" these:
 Verified with `tsc --noEmit` and `eslint`, both clean. `next build` was not run
 locally this session at the user's request; it runs on Vercel.
 
+Build reliability maintenance: the web app no longer uses `next/font/google`,
+so production builds do not make a build-time Google Fonts request. Inter now
+falls back to the system sans stack; CalSans and Noto Sans Mono remain bundled
+local assets. CI installs only the dependencies for each job's workspace, and
+the web job has a 20-minute timeout so a stuck build fails fast. Do not restore
+a remotely fetched build-time font. This maintenance was verified without
+running `next build` locally.
+
 ---
 
 ## Next: Phase 9

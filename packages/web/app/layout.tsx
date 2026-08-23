@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
-import { Inter as FontSans } from "next/font/google";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -16,20 +15,15 @@ export const viewport: Viewport = {
   ],
 };
 
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
 const fontHeading = localFont({
   src: "../assets/fonts/CalSans-SemiBold.woff2",
-  variable: "--font-heading",
+  variable: "--font-heading-face",
   weight: "600",
 });
 
 const fontMono = localFont({
   src: "../assets/fonts/NotoSansMono-VariableFont_wdth,wght.ttf",
-  variable: "--font-mono",
+  variable: "--font-mono-face",
 });
 
 export const metadata: Metadata = {
@@ -78,7 +72,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           // CalSans for display headings. That contrast is the template's
           // signature, so Sortis keeps it, using Noto Sans Mono as the face.
           "min-h-screen bg-background font-mono antialiased",
-          fontSans.variable,
           fontHeading.variable,
           fontMono.variable,
         )}
