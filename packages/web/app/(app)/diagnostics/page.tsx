@@ -20,15 +20,15 @@ export const metadata: Metadata = {
  */
 export default function DiagnosticsPage() {
   return (
-    <section className="container mx-auto max-w-3xl space-y-8 px-4 py-12">
+    <section className="section-shell max-w-3xl space-y-8">
       <div className="space-y-3">
         <p className="font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           Internal
         </p>
-        <h1 className="font-heading text-3xl leading-[1.1] md:text-4xl">
+        <h1 className="font-heading text-4xl tracking-tight md:text-5xl">
           Diagnostics
         </h1>
-        <p className="font-sans leading-normal text-muted-foreground">
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground">
           A smoke test for the application shell. If every row below reports
           ready, then wallet connection, chain detection and the Zama Relayer
           SDK are all working in this browser, and the encrypted screens have
