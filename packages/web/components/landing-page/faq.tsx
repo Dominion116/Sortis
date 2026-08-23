@@ -11,9 +11,9 @@ export default function FAQSection() {
   };
 
   return (
-    <section id="faq" className="mx-auto mb-12 max-w-3xl p-6">
+    <section id="faq" className="section-shell max-w-3xl">
       <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold">FAQ</h2>
+        <h2 className="font-heading text-3xl tracking-tight sm:text-4xl md:text-5xl">FAQ</h2>
         <p className="mx-auto max-w-[60ch] text-muted-foreground">
           The questions a careful saver would want answered before putting
           anything in.
@@ -21,10 +21,12 @@ export default function FAQSection() {
       </div>
       <div className="space-y-4">
         {faqItems.map((item, index) => (
-          <div key={index} className="overflow-hidden rounded-lg border">
+          <div key={item.question} className="overflow-hidden rounded-xl border bg-card">
             <button
               type="button"
-              className={`flex w-full cursor-pointer items-center justify-between p-4 text-left ${
+              aria-controls={`faq-answer-${index}`}
+              id={`faq-question-${index}`}
+              className={`flex min-h-14 w-full cursor-pointer items-center justify-between gap-4 p-4 text-left font-medium ${
                 activeItem === index ? "bg-muted" : ""
               }`}
               onClick={() => toggleItem(index)}
@@ -43,6 +45,10 @@ export default function FAQSection() {
               height would clip it.
             */}
             <div
+              id={`faq-answer-${index}`}
+              role="region"
+              aria-labelledby={`faq-question-${index}`}
+              aria-hidden={activeItem !== index}
               className={`grid transition-all duration-300 ease-in-out ${
                 activeItem === index ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
               }`}

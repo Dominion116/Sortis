@@ -42,7 +42,7 @@ export function NetworkGuard({ className }: { className?: string }) {
     <div
       role="alert"
       className={cn(
-        "flex flex-col gap-3 rounded-lg border border-brand/40 bg-brand/5 p-4 sm:flex-row sm:items-center sm:justify-between",
+        "flex flex-col gap-3 rounded-xl border border-brand/40 bg-brand/5 p-4 sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
     >

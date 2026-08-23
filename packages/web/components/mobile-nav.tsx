@@ -22,6 +22,8 @@ export function MobileNav({ items, children, onNavigate }: MobileNavProps) {
 
   return (
     <div
+      role="dialog"
+      aria-label="Mobile navigation"
       className={cn(
         "fixed inset-0 top-4 z-50 mx-auto grid h-[calc(100vh-4rem)] w-full grid-flow-row auto-rows-max overflow-auto p-6 pb-32 shadow-md animate-in slide-in-from-bottom-80 md:hidden",
       )}

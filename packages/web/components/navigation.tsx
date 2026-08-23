@@ -23,7 +23,7 @@ export default function CircularNavigation({
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
 
   return (
-    <nav className="relative mx-auto mt-4 flex w-full flex-wrap items-center justify-between gap-4 p-2 backdrop-blur-sm md:w-fit md:gap-20 md:rounded-full md:border-2 md:border-border md:bg-zinc-50 md:p-1 md:px-8 md:shadow-md md:backdrop-blur-none md:dark:border-muted/80 md:dark:bg-zinc-900">
+    <nav aria-label="Primary navigation" className="relative z-40 mx-auto mt-3 flex w-[calc(100%-1.5rem)] flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/90 p-2 shadow-sm backdrop-blur md:mt-5 md:w-fit md:gap-10 md:rounded-full md:px-5">
       <Link href="/" className="flex items-center space-x-2">
         <div className="rounded-full bg-slate-50 p-1 dark:bg-slate-900">
           <SunIcon className="size-8 transition-transform duration-300 ease-in-out hover:scale-110" />
@@ -64,7 +64,11 @@ export default function CircularNavigation({
           Repository
         </Link>
         <button
-          className="md:hidden"
+          type="button"
+          aria-expanded={showMobileMenu}
+          aria-controls="mobile-navigation"
+          aria-label={showMobileMenu ? "Close navigation" : "Open navigation"}
+          className="rounded-md p-2 md:hidden"
           onClick={() => setShowMobileMenu(!showMobileMenu)}
         >
           {showMobileMenu ? <Icons.close /> : <Icons.Menu />}
@@ -72,7 +76,7 @@ export default function CircularNavigation({
         </button>
       </div>
       {showMobileMenu && items ? (
-        <div className="absolute top-full right-0 left-0 mt-2 w-full md:hidden">
+        <div id="mobile-navigation" className="absolute top-full right-0 left-0 mt-2 w-full md:hidden">
           <MobileNav items={items} onNavigate={() => setShowMobileMenu(false)}>
             {children}
           </MobileNav>

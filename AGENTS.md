@@ -353,6 +353,23 @@ the web job has a 20-minute timeout so a stuck build fails fast. Do not restore
 a remotely fetched build-time font. This maintenance was verified without
 running `next build` locally.
 
+LAN development maintenance: `npm run dev` explicitly binds Next.js to
+`0.0.0.0`. `next.config.ts` discovers the host machine's non-loopback IPv4
+addresses and adds them to `allowedDevOrigins`, so phones on the same network
+can load dev assets and HMR. Additional hostnames or virtual-network addresses
+can be supplied through comma-separated `SORTIS_DEV_ORIGINS`; do not replace
+this with a hard-coded LAN IP because the address changes between networks.
+
+Phase 8.5 — Visual system pass (complete): the web UI now uses the Hiraki
+template's compact pill navigation, neutral surfaces, CalSans display headings,
+system sans body copy, consistent 1200px containers, 4/6rem section rhythm,
+small card radii, and visible keyboard focus rings. Marketing copy was shortened
+in the hero, feature descriptions, FAQ, and supporting sections. Shared app
+routes use the same section shell and responsive stacked layouts; FAQ and
+transaction feedback gained explicit relationships and live-region semantics.
+Do not reintroduce page-specific max widths, oversized rounded cards, or long
+paragraphs without a clear content need.
+
 ---
 
 ## Next: Phase 9
