@@ -9,8 +9,8 @@ and [`docs/sortis-implementation.docx`](docs/sortis-implementation.docx).
 Source of truth for *what is already true of the contracts*:
 [`packages/contracts/README.md`](packages/contracts/README.md).
 
-**Current status: Phase 8 of 13 complete.** Next is Phase 9 (deposit and
-withdraw screens against the live pools).
+**Current status: Phase 9 of 13 complete.** Next is Phase 10 (live draws,
+sweep progress, and the keeper).
 
 ---
 
@@ -372,31 +372,67 @@ paragraphs without a clear content need.
 
 ---
 
-## Next: Phase 9
+### Phase 9 — Pool app: deposit, withdraw, balance reveal (complete)
 
-Deposit and withdraw screens against the live pools. This is the first use of
-`EncryptedGate` in anger, and the first time the frontend produces a ciphertext
-rather than only reading plaintext views.
+`/app` is now the live pool screen for both Sepolia pool configurations. It
+produces real ciphertexts, submits deposits, decrypts the connected user's
+private state, and withdraws individual tickets.
 
-Already in place, do not rebuild: the provider tree, `useFhevm()`,
-`EncryptedGate` + `Skeleton`, `NetworkGuard` + `useNetworkMismatch()`,
-`ConnectButton`, the `(app)/` route group and its layout, `formatTokenAmount`,
-and `sortisPoolAbi` / `confidentialUsdtAbi` in `lib/contracts`.
+What landed:
 
-Regenerate ABIs with `npm run contracts:abis` if a contract's interface changes.
+- `components/app/pool-panel.tsx`: demo/standard selector, public round reads,
+  public ticket ownership discovery, encrypted deposit form, private balance
+  reveal, ticket status/amount reveal, and withdrawal confirmation.
+- First deposit sequence is deliberately `encrypt` → ERC-7984 `setOperator`
+  (only when needed) → `deposit`. Both transactions wait for successful
+  receipts before the UI advances. The approval uses `uint48.max`.
+- `lib/fhevm/user-decryption.ts`: one generated keypair and EIP-712 signature
+  per connected account per page session. The authorisation covers the token
+  plus both pools, so changing pools does not create another signature prompt.
+  The module stores nothing in localStorage, cookies, or IndexedDB.
+- One `userDecrypt` request reveals the selected pool balance plus every owned
+  ticket's amount and encrypted active flag. Cumulative handles are never
+  requested. The decrypted ticket flag is what disables a withdrawn ticket;
+  the UI does not infer privacy-sensitive state from transaction failure.
+- Withdrawal is unavailable until the private ticket state is revealed. It
+  has an inline second confirmation that explicitly says the in-progress
+  ticket will be forfeited. After confirmation the private display is masked
+  until refreshed, and that refresh reuses the session signature.
+- Account and pool scope are attached to revealed values, so switching either
+  cannot briefly display the previous account's plaintext.
+- `/app` is now present in the app navigation. The existing real
+  `CiphertextReveal` animation is used once a live decrypted balance exists;
+  the pre-decryption state stays masked and non-interactive.
 
-Deposit needs `createEncryptedInput` → `add64` → `encrypt`, then the pool's
-`deposit(externalEuint64, bytes)` path, and an ERC-7984 operator authorisation
-before the first deposit. Balance display needs `userDecrypt`, which needs an
-EIP-712 signature, so budget for that being a second wallet prompt.
+Do not "fix" these:
 
-Remember the Phase 3 finding: on a first deposit the user's balance handle and
-the ticket `cumulative` handle are the same handle. Harmless, but do not build
-UI that assumes two distinct handles imply two distinct values.
+- Ticket ownership is public and is read with `ticketAt`; ticket amount and
+  active state remain encrypted and are only filled from `userDecrypt`.
+- A wallet with no pool balance has an uninitialised zero handle. Reveal is
+  disabled for that state rather than sending an invalid handle to the relayer.
+- The session authorisation intentionally includes both pool addresses and the
+  token address up front. Narrowing it to the selected pool would make a pool
+  switch require another signature and break the one-signature-per-session
+  Phase 9 exit criterion.
+- Withdraw does not optimistically mark a ticket inactive. It masks the old
+  plaintext and asks the user to reveal the new ciphertext state, which avoids
+  presenting an assumed confidential result as fact.
 
-The keeper is Phase 10 and claim/decrypt of `_claimable` is Phase 11, so no
-round has been closed on Sepolia yet. `draw-live` and the mock round data stay
-labelled illustrative until then.
+Verified with `tsc --noEmit`, ESLint, and `git diff --check`, all clean. Per the
+user's instruction, `next build` was not run locally.
+
+---
+
+## Next: Phase 10
+
+Build `/app/draws`, the event-log-backed round history, countdown, distinct
+oracle-pending state, live batched sweep progress, and the authenticated Vercel
+Cron keeper route. Reuse the Phase 9 pool selector/address model rather than
+creating a second source of pool configuration.
+
+The Sepolia rounds have still not been closed by the frontend. Do not relabel
+landing-page illustrative draw data as live until the Phase 10 keeper completes
+at least one full real round.
 
 ---
 
