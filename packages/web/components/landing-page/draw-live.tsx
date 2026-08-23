@@ -6,20 +6,18 @@ export default function DrawLive() {
   const { lastRound } = MOCK;
 
   return (
-    <section id="draw" className="container mb-10 space-y-6 py-8 md:py-12 lg:py-24">
+    <section id="draw" className="section-shell space-y-10">
       <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-        <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+        <h2 className="font-heading text-3xl tracking-tight sm:text-4xl md:text-5xl">
           The draw, live
         </h2>
-        <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          There is always a round on the way to resolving. The demo pool closes
-          and settles continuously, which means that whenever you happen to
-          arrive, you are never more than a few minutes away from watching a
-          complete draw run from start to finish.
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+          A live view of the demo pool. Round data remains labelled illustrative
+          until the keeper is running.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 md:max-w-[64rem] md:grid-cols-2">
-        <div className="relative overflow-hidden rounded-lg border bg-background p-8 dark:bg-zinc-950">
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-8">
           <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
             Next draw in
           </span>
@@ -30,7 +28,7 @@ export default function DrawLive() {
               : "This countdown is illustrative until the contracts are deployed. Once they are live, the demo pool will close a round every five minutes and this clock will track it directly."}
           </p>
         </div>
-        <div className="relative overflow-hidden rounded-lg border bg-background p-8 dark:bg-zinc-950">
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-8">
           <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
             Most recent settled round
           </span>

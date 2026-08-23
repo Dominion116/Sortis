@@ -51,31 +51,28 @@ export default function UnderTheHood() {
   return (
     <section
       id="under-the-hood"
-      className="container mb-10 space-y-6 rounded-6xl bg-zinc-100 py-8 dark:bg-zinc-900 md:py-12 lg:py-24"
+      className="section-shell space-y-10 rounded-3xl bg-muted/70 px-4 sm:px-6 lg:px-8"
     >
       <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-        <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+        <h2 className="font-heading text-3xl tracking-tight sm:text-4xl md:text-5xl">
           Under the hood
         </h2>
-        <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          Almost nothing here is invented. The encryption, the token standard,
-          and the contract components all come from work that has already been
-          audited and used in production, which leaves the draw itself as the
-          only genuinely new piece and keeps the surface worth scrutinising
-          small.
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+          Built with Zama FHE, ERC-7984 confidential tokens, and verified
+          contracts on Sepolia.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 md:max-w-[64rem] md:grid-cols-2">
-        <div className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950">
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-6">
           <h3 className="mb-4 text-lg font-medium">Stack</h3>
           <dl className="divide-y divide-border border-t">
             {FACTS.map((fact) => (
-              <div key={fact.label} className="grid grid-cols-[9rem_1fr] gap-4 py-4 text-sm">
+              <div key={fact.label} className="grid gap-1 py-4 text-sm sm:grid-cols-[9rem_1fr] sm:gap-4">
                 <dt className="text-muted-foreground">{fact.label}</dt>
                 <dd className="text-foreground">{fact.value}</dd>
               </div>
             ))}
-            <div className="grid grid-cols-[9rem_1fr] gap-4 py-4 text-sm">
+            <div className="grid gap-1 py-4 text-sm sm:grid-cols-[9rem_1fr] sm:gap-4">
               <dt className="text-muted-foreground">Test coverage</dt>
               <dd className="tabular font-mono text-foreground">
                 {MOCK.coverage} statements{" "}
@@ -84,7 +81,7 @@ export default function UnderTheHood() {
                 </span>
               </dd>
             </div>
-            <div className="grid grid-cols-[9rem_1fr] gap-4 py-4 text-sm">
+            <div className="grid gap-1 py-4 text-sm sm:grid-cols-[9rem_1fr] sm:gap-4">
               <dt className="text-muted-foreground">Repository</dt>
               <dd>
                 <a
@@ -99,13 +96,13 @@ export default function UnderTheHood() {
             </div>
           </dl>
         </div>
-        <div className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950">
+        <div className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-6">
           <h3 className="mb-4 text-lg font-medium">Deployed contracts</h3>
           <dl className="divide-y divide-border border-t">
             {ADDRESSES.map((addr) => (
               <div
                 key={addr.label}
-                className="grid grid-cols-[1fr_auto] items-center gap-4 py-4 text-sm"
+                className="grid gap-1 py-4 text-sm sm:grid-cols-[1fr_auto] sm:items-center sm:gap-4"
               >
                 <dt className="text-foreground">{addr.label}</dt>
                 <dd>

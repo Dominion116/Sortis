@@ -5,22 +5,18 @@ const rows = MOCK.problemComparison.rows;
 
 export default function Problem() {
   return (
-    <section id="problem" className="container mb-10 space-y-6 py-8 md:py-12 lg:py-24">
+    <section id="problem" className="section-shell space-y-10">
       <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-        <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+        <h2 className="font-heading text-3xl tracking-tight sm:text-4xl md:text-5xl">
           The problem
         </h2>
-        <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          No-loss prize pools already exist onchain and the mechanism behind
-          them is sound. The difficulty is that everything they touch becomes a
-          matter of public record, so anyone who knows your address can read
-          how much you have saved, how your odds compare to everyone else&apos;s,
-          and exactly what you won or failed to win, for as long as the chain
-          exists.
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+          Public prize pools expose deposits, odds, and outcomes. Sortis keeps
+          those personal details encrypted.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 md:max-w-[64rem] md:grid-cols-2">
-        <div className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950">
+        <div className="relative overflow-x-auto rounded-xl border bg-card p-5 sm:p-6">
           <h3 className="mb-1 text-lg font-medium text-foreground">
             {MOCK.problemComparison.publicPoolName}
           </h3>
@@ -32,9 +28,9 @@ export default function Problem() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b text-left text-xs uppercase tracking-[0.06em] text-muted-foreground">
-                <th className="py-2 font-medium">Address</th>
-                <th className="py-2 font-medium">Balance</th>
-                <th className="py-2 font-medium">Odds</th>
+                <th scope="col" className="py-2 font-medium">Address</th>
+                <th scope="col" className="py-2 font-medium">Balance</th>
+                <th scope="col" className="py-2 font-medium">Odds</th>
               </tr>
             </thead>
             <tbody className="tabular font-mono">
@@ -48,7 +44,7 @@ export default function Problem() {
             </tbody>
           </table>
         </div>
-        <div className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950">
+        <div className="relative overflow-x-auto rounded-xl border bg-card p-5 sm:p-6">
           <h3 className="mb-1 text-lg font-medium text-foreground">
             Sortis
           </h3>
@@ -59,9 +55,9 @@ export default function Problem() {
           <table className="w-full border-collapse text-sm">
             <thead>
               <tr className="border-b text-left text-xs uppercase tracking-[0.06em] text-muted-foreground">
-                <th className="py-2 font-medium">Address</th>
-                <th className="py-2 font-medium">Balance</th>
-                <th className="py-2 font-medium">Odds</th>
+                <th scope="col" className="py-2 font-medium">Address</th>
+                <th scope="col" className="py-2 font-medium">Balance</th>
+                <th scope="col" className="py-2 font-medium">Odds</th>
               </tr>
             </thead>
             <tbody>

@@ -10,15 +10,15 @@ export const metadata: Metadata = {
 
 export default function FaucetPage() {
   return (
-    <section className="container mx-auto max-w-3xl space-y-8 px-4 py-12">
+    <section className="section-shell max-w-3xl space-y-8">
       <div className="space-y-3">
         <p className="font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           Sepolia testnet
         </p>
-        <h1 className="font-heading text-3xl leading-[1.1] md:text-4xl">
+        <h1 className="font-heading text-4xl tracking-tight md:text-5xl">
           Get test {TOKEN_SYMBOL}
         </h1>
-        <p className="font-sans leading-normal text-muted-foreground">
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground">
           Sortis pools hold {TOKEN_SYMBOL}, a confidential ERC-7984 token
           deployed for this demo. Claim some here, then deposit it into a pool.
           It has no value outside Sepolia.
@@ -27,7 +27,7 @@ export default function FaucetPage() {
 
       <FaucetCard />
 
-      <div className="rounded-lg border bg-background p-6 dark:bg-zinc-950">
+      <div className="rounded-xl border bg-card p-5 sm:p-6">
         <h2 className="mb-4 text-lg font-medium">What you should know</h2>
         <ul className="space-y-3 font-sans text-sm leading-relaxed text-muted-foreground">
           <li>

@@ -63,20 +63,16 @@ export default function HeroSection() {
             Everyone saves together, one person wins the yield, and nobody can
             see who holds what.
           </h1>
-          <div className="max-w-[42rem] rounded-full p-2 text-primary tracking-tight sm:text-xl sm:leading-8">
-            Sortis is a no-loss prize savings pool built on the Zama Protocol.
-            You deposit a confidential token and your principal remains yours to
-            withdraw at any moment, while the interest the pool earns is pooled
-            into a single prize that one saver wins each round. Every balance
-            stays encrypted from the moment you deposit, including throughout
-            the draw itself.
+          <div className="max-w-[42rem] p-2 text-base leading-7 text-muted-foreground sm:text-lg">
+            Confidential prize savings on Zama. Your principal stays yours; the
+            pool&apos;s yield funds one private winner each round.
           </div>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/#how-it-works"
               className={cn(
                 buttonVariants({ size: "xl" }),
-                "text-bold rounded-full border-2 border-primary text-white dark:border-white dark:text-zinc-900",
+                "rounded-full border-2 border-primary text-white dark:border-white dark:text-zinc-900",
               )}
             >
               See how it works
@@ -87,21 +83,21 @@ export default function HeroSection() {
               rel="noreferrer"
               className={cn(
                 buttonVariants({ variant: "outline", size: "xl" }),
-                "rounded-full border-2 border-primary text-semibold dark:border-white",
+                "rounded-full border-2 border-primary font-medium dark:border-white",
               )}
             >
               GitHub <GitHubLogoIcon className="ml-2" />
             </Link>
           </div>
           <div className="mt-6 grid w-full max-w-4xl grid-cols-2 gap-3 text-left sm:grid-cols-4">
-            <div className="rounded-lg border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
+            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
               <Stat
                 label="Total pooled"
                 value={MOCK.totalPooled}
                 sublabel="illustrative"
               />
             </div>
-            <div className="rounded-lg border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
+            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
               <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
                 Next draw
               </span>
@@ -111,14 +107,14 @@ export default function HeroSection() {
                 className="mt-1.5"
               />
             </div>
-            <div className="rounded-lg border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
+            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
               <Stat
                 label="Participants"
                 value={MOCK.participantCount}
                 sublabel="this round"
               />
             </div>
-            <div className="rounded-lg border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
+            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
               <CiphertextReveal
                 label="Example balance"
                 value={MOCK.myBalance}

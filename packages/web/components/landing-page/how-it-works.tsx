@@ -26,17 +26,15 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="container mb-10 space-y-6 rounded-6xl bg-zinc-100 py-8 dark:bg-zinc-900 md:py-12 lg:py-24"
+      className="section-shell space-y-10 rounded-3xl bg-muted/70 px-4 sm:px-6 lg:px-8"
     >
       <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
-        <h2 className="font-heading text-3xl leading-[1.1] sm:text-3xl md:text-6xl">
+        <h2 className="font-heading text-3xl tracking-tight sm:text-4xl md:text-5xl">
           How it works
         </h2>
-        <p className="max-w-[85%] leading-normal text-muted-foreground sm:text-lg sm:leading-7">
-          The whole protocol comes down to three steps, and the third is where
-          the genuinely difficult engineering lives. Choosing a winner weighted
-          by everyone&apos;s balance, while none of those balances can be read,
-          is the problem Sortis exists to solve.
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
+          Deposit privately, let the pool earn, then draw a winner without
+          decrypting anyone&apos;s balance.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
@@ -45,7 +43,7 @@ export default function HowItWorks() {
             whileHover={{ y: -8 }}
             transition={{ type: "spring", bounce: 0.7 }}
             key={beat.index}
-            className="relative overflow-hidden rounded-lg border bg-background p-6 dark:bg-zinc-950"
+            className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-6"
           >
             <div className="mb-2 font-mono text-sm text-muted-foreground">{beat.index}</div>
             <div className="mb-2 text-lg font-medium text-foreground">
