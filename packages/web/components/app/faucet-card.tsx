@@ -115,7 +115,7 @@ export function FaucetCard() {
 
   if (!faucet) {
     return (
-      <div className="rounded-lg border bg-background p-6 dark:bg-zinc-950">
+      <div className="rounded-xl border bg-card p-5 sm:p-6">
         <p className="text-sm font-medium text-foreground">Faucet not deployed</p>
         <p className="mt-2 font-sans text-sm text-muted-foreground">
           The generated address module has no faucet address. Run the deploy
@@ -126,7 +126,7 @@ export function FaucetCard() {
   }
 
   return (
-    <div className="space-y-6 rounded-lg border bg-background p-6 dark:bg-zinc-950">
+    <div className="space-y-6 rounded-xl border bg-card p-5 sm:p-6">
       <dl className="grid gap-6 sm:grid-cols-2">
         <div className="space-y-1">
           <dt className="font-sans text-xs tracking-wide text-muted-foreground uppercase">
@@ -186,7 +186,7 @@ export function FaucetCard() {
       )}
 
       {confirmed && hash ? (
-        <div className="flex items-start gap-3 rounded-md border border-brand/40 bg-brand/5 p-4">
+        <div role="status" aria-live="polite" className="flex items-start gap-3 rounded-lg border border-brand/40 bg-brand/5 p-4">
           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
           <div className="space-y-1">
             <p className="text-sm font-medium text-foreground">
@@ -205,7 +205,7 @@ export function FaucetCard() {
       ) : null}
 
       {error ? (
-        <div className="rounded-md border border-destructive/40 bg-destructive/5 p-4">
+        <div role="alert" className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
           <p className="text-sm font-medium text-foreground">The claim did not go through</p>
           <p className="mt-1 font-sans text-xs leading-relaxed text-muted-foreground">
             {readableError(error)}

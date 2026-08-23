@@ -14,7 +14,7 @@ const AnimatedUnderline = ({
   href: string;
   className?: string;
 }) => (
-  <a href={href} className={`${className ?? ""} relative overflow-hidden group`}>
+  <a href={href} className={`${className ?? ""} group relative overflow-hidden rounded-sm`}>
     {children}
     <span className="absolute bottom-0 left-0 h-0.5 w-full origin-left scale-x-0 transform bg-current transition-transform duration-500 ease-out group-hover:scale-x-100"></span>
   </a>
@@ -22,11 +22,11 @@ const AnimatedUnderline = ({
 
 export default function FooterPrimary() {
   return (
-    <footer className="py-10">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
+    <footer className="mt-12 border-t py-10 sm:py-14">
+      <div className="container">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
           <div>
-            <h3 className="mb-4 text-lg font-bold">Protocol</h3>
+            <h3 className="mb-4 text-base">Protocol</h3>
             <ul className="space-y-2">
               <li>
                 <AnimatedUnderline href="/#how-it-works" className="text-primary">
@@ -51,7 +51,7 @@ export default function FooterPrimary() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-lg font-bold">Resources</h3>
+            <h3 className="mb-4 text-base">Resources</h3>
             <ul className="space-y-2">
               <li>
                 <AnimatedUnderline href="/#faq" className="text-primary">
@@ -82,7 +82,7 @@ export default function FooterPrimary() {
             </ul>
           </div>
           <div>
-            <h3 className="mb-4 text-lg font-bold">Connect</h3>
+            <h3 className="mb-4 text-base">Connect</h3>
             <ul className="space-y-2">
               <li>
                 <AnimatedUnderline
@@ -107,13 +107,10 @@ export default function FooterPrimary() {
               </li>
             </ul>
           </div>
-          <div>
-            <h3 className="mb-4 text-lg font-bold">Follow the build</h3>
-            <p className="mb-4 leading-relaxed text-primary">
-              Sortis is being built in the open as an entry to the Zama
-              Developer Program. The repository is where the contracts, the
-              tests, and this page all live, so it is the best place to watch
-              the work as it happens.
+          <div className="col-span-2 md:col-span-1">
+            <h3 className="mb-4 text-base">Follow the build</h3>
+            <p className="mb-4 text-sm leading-6 text-muted-foreground">
+              Contracts, tests, and deployment data are public on GitHub.
             </p>
             <CoolMode>
               <Button

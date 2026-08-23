@@ -16,6 +16,15 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+To open the development site on a phone connected to the same Wi-Fi or
+hotspot, run `npm run dev` and browse to the Network URL printed by Next.js
+(for example, `http://172.20.10.2:3000`). The dev server listens on all local
+interfaces and automatically allows this machine's LAN IPv4 addresses.
+
+If a hostname or virtual-network address is not detected automatically, add it
+to `SORTIS_DEV_ORIGINS` in `.env` as a comma-separated value and restart the
+dev server.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

@@ -37,7 +37,7 @@ function Row({
   detail?: string;
 }) {
   return (
-    <div className="grid grid-cols-[10rem_1fr] items-start gap-4 py-4 text-sm">
+    <div className="grid gap-1 py-4 text-sm sm:grid-cols-[10rem_1fr] sm:items-start sm:gap-4">
       <dt className="font-sans text-muted-foreground">{label}</dt>
       <dd className="space-y-1">
         <p className="flex items-center gap-2">
@@ -76,7 +76,7 @@ export function DiagnosticsPanel() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-lg border bg-background p-6 dark:bg-zinc-950">
+      <div className="rounded-xl border bg-card p-5 sm:p-6">
         <dl className="divide-y divide-border">
           <Row
             label="Server render"

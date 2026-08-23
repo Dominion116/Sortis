@@ -68,10 +68,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <head />
       <body
         className={cn(
-          // The Hikari template sets its body copy in monospace and reserves
-          // CalSans for display headings. That contrast is the template's
-          // signature, so Sortis keeps it, using Noto Sans Mono as the face.
-          "min-h-screen bg-background font-mono antialiased",
+          "min-h-screen bg-background font-sans antialiased",
           fontHeading.variable,
           fontMono.variable,
         )}

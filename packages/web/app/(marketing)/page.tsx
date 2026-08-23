@@ -12,7 +12,7 @@ import FAQSection from "@/components/landing-page/faq";
 
 export default function IndexPage() {
   return (
-    <div className="mb-5 flex-col gap-10">
+    <div className="landing-page">
       <Hero />
       <LogoCloud />
       <Problem />

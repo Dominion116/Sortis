@@ -21,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <ConnectButton className="mt-4" />
       </CircularNavigation>
       <main className="w-full flex-1">
-        <div className="container mx-auto max-w-5xl px-4 pt-8">
+        <div className="container pt-6 sm:pt-8">
           <NetworkGuard />
         </div>
         {children}

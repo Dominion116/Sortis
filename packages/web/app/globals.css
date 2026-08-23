@@ -31,9 +31,9 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --radius-4xl: 2rem;
-  --radius-5xl: 2.5rem;
-  --radius-6xl: 3rem;
+  --radius-4xl: 1rem;
+  --radius-5xl: 1.25rem;
+  --radius-6xl: 1.5rem;
 
   --tracking-tightest: -0.075em;
   --tracking-tighter: -0.05em;
@@ -134,9 +134,17 @@
 
 @utility container {
   margin-inline: auto;
-  padding-inline: 2rem;
+  padding-inline: 1rem;
   width: 100%;
-  max-width: 1400px;
+  max-width: 1200px;
+
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
 }
 
 @utility animate-in {
@@ -201,13 +209,27 @@
 
   * {
     border-color: hsl(var(--border));
+    border-width: 0;
   }
+
+  :where(button, a, input, textarea, select, summary):focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+
+  button, a, summary { -webkit-tap-highlight-color: transparent; }
 
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.6;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+
+  h1, h2, h3, h4 { font-family: var(--font-heading); line-height: 1.08; }
+  p { text-wrap: pretty; }
 }
 
 html {
@@ -255,4 +277,18 @@ html {
 ::selection {
   background: var(--color-brand);
   color: #ffffff;
+}
+
+.section-shell {
+  width: min(100% - 2rem, 1200px);
+  margin-inline: auto;
+  padding-block: 4rem;
+}
+
+@media (min-width: 768px) {
+  .section-shell { width: min(100% - 3rem, 1200px); padding-block: 6rem; }
+}
+
+@media (min-width: 1024px) {
+  .section-shell { width: min(100% - 4rem, 1200px); }
 }
