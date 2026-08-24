@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
-import { MOCK } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import Particles from "@/components/magicui/particles";
@@ -10,9 +9,6 @@ import Ripple from "@/components/magicui/ripple";
 import AnimatedGradientText from "@/components/magicui/animated-shiny-text";
 import { ArrowRightIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useTheme } from "next-themes";
-import { CiphertextReveal } from "@/components/ciphertext-reveal";
-import { Countdown } from "@/components/countdown";
-import { Stat } from "@/components/stat";
 import { useHasMounted, useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export default function HeroSection() {
@@ -23,7 +19,7 @@ export default function HeroSection() {
   const particleColor = resolvedTheme === "dark" ? "#FFFFFF" : "#000000";
 
   return (
-    <section className="relative w-full overflow-hidden">
+    <section className="relative flex min-h-[82svh] w-full items-center overflow-hidden sm:min-h-[78svh] lg:min-h-[78vh]">
       <div className="absolute inset-0 z-0">
         {mounted && !reduceMotion ? (
           <>
@@ -38,7 +34,7 @@ export default function HeroSection() {
           </>
         ) : null}
       </div>
-      <div className="container mx-auto px-4 py-12 md:py-16 lg:py-32">
+      <div className="container mx-auto px-4 py-12 md:py-16 lg:py-24">
         <div className="relative z-10 mx-auto flex max-w-[64rem] flex-col items-center gap-4 text-center">
           <Link href={siteConfig.links.zama} target="_blank" rel="noreferrer" className="w-fit">
             <div
@@ -88,39 +84,6 @@ export default function HeroSection() {
             >
               GitHub <GitHubLogoIcon className="ml-2" />
             </Link>
-          </div>
-          <div className="mt-6 grid w-full max-w-4xl grid-cols-2 gap-3 text-left sm:grid-cols-4">
-            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
-              <Stat
-                label="Total pooled"
-                value={MOCK.totalPooled}
-                sublabel="preview"
-              />
-            </div>
-            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
-              <span className="text-xs uppercase tracking-[0.08em] text-muted-foreground">
-                Next draw
-              </span>
-              <Countdown
-                offsetMs={MOCK.nextDrawOffsetMs}
-                size="sm"
-                className="mt-1.5"
-              />
-            </div>
-            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
-              <Stat
-                label="Participants"
-                value={MOCK.participantCount}
-                sublabel="this round"
-              />
-            </div>
-            <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
-              <CiphertextReveal
-                label="Example balance"
-                value={MOCK.myBalance}
-                size="sm"
-              />
-            </div>
           </div>
         </div>
       </div>

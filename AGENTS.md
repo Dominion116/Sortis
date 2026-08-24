@@ -372,6 +372,15 @@ transaction feedback gained explicit relationships and live-region semantics.
 Do not reintroduce page-specific max widths, oversized rounded cards, or long
 paragraphs without a clear content need.
 
+Hero maintenance: the four illustrative stat cards were removed. The ripple
+rings are centered with `left/top: 50%` plus the keyframe's own
+`translate(-50%, -50%)`; do not add Tailwind `-translate-*` utilities to the
+animated rings because Tailwind v4's `translate` property stacks with the
+keyframe transform and shifts the circles up and left. The hero uses an 82svh
+mobile minimum height, 78svh from `sm`, and 78vh on desktop, with its content
+vertically centered; keep mobile viewport sizing on `svh` to avoid browser
+chrome jumps.
+
 ---
 
 ### Phase 9 — Pool app: deposit, withdraw, balance reveal (complete)
