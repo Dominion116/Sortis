@@ -11,7 +11,7 @@ Balances, deposits and winnings are encrypted end to end using fully homomorphic
 | **Program** | [Zama Developer Program, Mainnet Season 4](https://www.zama.org/post/zama-developer-program-mainnet-season-4), Bounty Track |
 | **Submission deadline** | 5 September 2026, 23:59 AOE |
 | **Target network** | Ethereum Sepolia |
-| **Status** | In development, Phase 7 of 13 complete (live on Sepolia, verified, faucet open) — see [Implementation Plan](docs/implementation-plan.md) |
+| **Status** | Phase 13 submission-readiness pass — live on Sepolia, verified, faucet open, and served by the web app — see [Implementation Plan](docs/implementation-plan.md) |
 
 ---
 
@@ -168,7 +168,7 @@ sortis/
 
 ## Getting started
 
-> The workspace is being built out phase by phase (see the [implementation plan](docs/implementation-plan.md) for current status). The contracts are live and verified on Sepolia, both pool configurations are running, and the faucet mints test tokens to any address. What is not built yet is the app itself: wallet connection and the FHE SDK bootstrap are Phase 8, so today the contracts are reachable through the scripts below rather than through a UI.
+> The workspace is complete through the submission-readiness phase (see the [implementation plan](docs/implementation-plan.md)). The contracts and both pool configurations are live and verified on Sepolia, the faucet mints test tokens, and the web app provides the pool, draw monitor, private prizes, public verification, and protocol guide.
 
 
 ### Prerequisites
@@ -205,6 +205,15 @@ NEXT_PUBLIC_SEPOLIA_RPC_URL=
 NEXT_PUBLIC_RELAYER_URL=
 ```
 
+Vercel production-only variables:
+
+```bash
+CRON_SECRET=                 # shared secret for /api/cron/keeper
+SORTIS_KEEPER_PRIVATE_KEY=   # Sepolia keeper hot key, never exposed to the browser
+NEXT_PUBLIC_SEPOLIA_RPC_URL= # optional RPC override
+ZAMA_FHEVM_API_KEY=          # optional relayer authentication
+```
+
 Contract addresses are not environment variables. `deploy:sepolia` writes them into `packages/web/lib/contracts/addresses.ts`, which is committed, so a checkout points at the live deployment with no configuration.
 
 ### Run contracts
@@ -237,7 +246,7 @@ npm run dev
 - A test asserting that losers' storage slots are rewritten on every draw. A regression here would silently destroy the privacy guarantee
 - Gas and HCU measurement per ticket for the sweep, used to set `DEFAULT_BATCH_SIZE = 8` (see [contracts README](packages/contracts/README.md#gas-and-hcu-accounting))
 - `npm run smoke:sepolia`, which drips the faucet to a freshly generated address and puts a real encrypted deposit through the live demo pool, so the encrypted path is proven against the actual coprocessor and relayer rather than only the mock
-- A full integration run on Sepolia covering deposit → round close → draw → claim → withdraw as one sequence lands with the keeper (Phase 10) and end-to-end QA (Phase 12)
+- The Sepolia smoke script covers faucet → encrypted deposit. The full deposit → round close → draw → claim → withdraw walkthrough is documented in [`docs/phase-13-checklist.md`](docs/phase-13-checklist.md) and requires a funded keeper, relayer access, and a wallet that wins a live draw.
 
 **Coverage** (solidity-coverage against the mock coprocessor, `MorphoYieldSource` skipped as a documented stub):
 
@@ -336,11 +345,19 @@ The build is sequenced into 13 phases, starting with the public landing page and
 | Requirement | How Sortis satisfies it |
 |---|---|
 | Functioning dApp: contracts plus frontend | Hardhat workspace and a Next.js app in one monorepo, both public on GitHub |
-| Working demo deployed on a website | Vercel deployment with a public landing page, a live pool on Sepolia, and a one-click faucet |
+| Working demo deployed on a website | Vercel deployment with a public landing page, live pool and draw monitor on Sepolia, public verification, private prizes, and a one-click faucet |
 | Three-minute video, real person only | Screen recording with live voice — no AI-generated video or voice |
 | An X thread or article introducing the project | Thread tagging `@zama` with `#ZamaDeveloperProgram`, published before the deadline |
 | Deployed on Sepolia | All contracts on Sepolia, addresses published on the site and in this README |
-| Production quality, beyond proof of concept | Full test suite, documented threat model, gas accounting, a real yield adapter interface, and an audit-ready README |
+| Production quality, beyond proof of concept | Full test suite, documented threat model, gas/HCU accounting, a real yield adapter interface, verified deployments, keeper hardening notes, and an audit-ready README |
+
+### Submission checklist
+
+The remaining submission actions are external to the repository: record the
+three-minute live demo with a real person and voice, publish the project post
+or X thread tagging `@zama` and `#ZamaDeveloperProgram`, and paste the final
+production URL plus those links into the bounty form. The implementation and
+deployment checklist is [`docs/phase-13-checklist.md`](docs/phase-13-checklist.md).
 
 ## License
 

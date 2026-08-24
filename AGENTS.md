@@ -9,8 +9,9 @@ and [`docs/sortis-implementation.docx`](docs/sortis-implementation.docx).
 Source of truth for *what is already true of the contracts*:
 [`packages/contracts/README.md`](packages/contracts/README.md).
 
-**Current status: Phase 12 of 13 complete.** Next is Phase 13 (submission
-readiness and deployment hardening).
+**Current status: Phase 13 implementation pass complete.** Remaining work is
+external submission: production Vercel verification, keeper funding, live
+walkthrough recording, and bounty-form publication.
 
 ---
 
@@ -513,7 +514,20 @@ Verified with web typegen, typecheck, ESLint, and `git diff --check`.
 in this session; the latter requires a funded test wallet and keeper/oracle
 activity.
 
-### Next: Phase 13
+### Phase 13 — Submission readiness (implementation pass complete)
+
+README status and getting-started instructions now describe the finished web
+app rather than the old Phase 7 scaffold. Production-only Vercel variables,
+keeper behavior, and the honest boundary around the unobserved full Sepolia
+winner path are documented in `docs/phase-13-checklist.md`. The keeper route
+now validates that its configured key matches each draw contract's `keeper()`
+and isolates per-pool failures so one broken pool does not stop the other from
+advancing on the same cron tick.
+
+Verified with web typecheck, ESLint, route type generation, and diff checks.
+The remaining checklist items require access to the production Vercel project,
+a funded Sepolia keeper, and a human-recorded demo, so they are not claimed as
+completed in source control.
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
 

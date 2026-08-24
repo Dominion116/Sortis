@@ -28,6 +28,10 @@ async function advance(poolId: (typeof poolIds)[number]) {
   const wallet = createWalletClient({ account, chain: sepolia, transport: http(rpcUrl) });
   const draw = getDrawAddress(poolId);
   const pool = getPoolAddress(poolId);
+  const configuredKeeper = await publicClient.readContract({ address: draw, abi: sortisDrawAbi, functionName: "keeper" });
+  if (configuredKeeper.toLowerCase() !== account.address.toLowerCase()) {
+    throw new Error(`${poolId} keeper mismatch: contract expects ${configuredKeeper}, configured key is ${account.address}`);
+  }
   const roundId = await publicClient.readContract({ address: draw, abi: sortisDrawAbi, functionName: "drawingRoundId" });
   if (roundId === 0n) {
     const hash = await wallet.writeContract({ address: draw, abi: sortisDrawAbi, functionName: "openRound" });
@@ -83,9 +87,15 @@ async function advance(poolId: (typeof poolIds)[number]) {
 export async function GET(request: Request) {
   if (!authorised(request)) return Response.json({ error: "Unauthorized" }, { status: 401 });
   try {
-    const results = [];
-    for (const poolId of poolIds) results.push(await advance(poolId));
-    return Response.json({ ok: true, results });
+    const results = await Promise.all(poolIds.map(async (poolId) => {
+      try {
+        return await advance(poolId);
+      } catch (error) {
+        return { poolId, action: "error", error: error instanceof Error ? error.message : String(error) };
+      }
+    }));
+    const ok = results.every((result) => result.action !== "error");
+    return Response.json({ ok, results }, { status: ok ? 200 : 500 });
   } catch (error) {
     return Response.json({ ok: false, error: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
