@@ -2,17 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { headers } from "next/headers";
 import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Providers } from "@/components/providers";
 import { siteConfig } from "@/config/site";
 
 import "./globals.css";
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "white" },
-    { media: "(prefers-color-scheme: dark)", color: "black" },
-  ],
+  themeColor: "black",
 };
 
 const fontHeading = localFont({
@@ -64,7 +60,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const cookie = (await headers()).get("cookie");
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head />
       <body
         className={cn(
@@ -73,9 +69,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           fontMono.variable,
         )}
       >
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Providers cookie={cookie}>{children}</Providers>
-        </ThemeProvider>
+        <Providers cookie={cookie}>{children}</Providers>
       </body>
     </html>
   );

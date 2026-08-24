@@ -26,7 +26,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className="section-shell space-y-10 rounded-3xl bg-muted/70 px-4 sm:px-6 lg:px-8"
+      className="section-shell mt-8 space-y-10 rounded-3xl bg-muted/70 px-4 sm:px-6 md:mt-12 lg:px-8"
     >
       <div className="mx-auto flex max-w-[58rem] flex-col items-center space-y-4 text-center">
         <h2 className="font-heading text-3xl tracking-tight sm:text-4xl md:text-5xl">

@@ -8,15 +8,11 @@ import Particles from "@/components/magicui/particles";
 import Ripple from "@/components/magicui/ripple";
 import AnimatedGradientText from "@/components/magicui/animated-shiny-text";
 import { ArrowRightIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
-import { useTheme } from "next-themes";
 import { useHasMounted, useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export default function HeroSection() {
-  const { resolvedTheme } = useTheme();
   const mounted = useHasMounted();
   const reduceMotion = useReducedMotion();
-
-  const particleColor = resolvedTheme === "dark" ? "#FFFFFF" : "#000000";
 
   return (
     <section className="relative flex min-h-[82svh] w-full items-center overflow-hidden sm:min-h-[78svh] lg:min-h-[78vh]">
@@ -27,7 +23,7 @@ export default function HeroSection() {
               className="absolute inset-0"
               quantity={300}
               ease={80}
-              color={particleColor}
+              color="#FFFFFF"
               refresh
             />
             <Ripple />

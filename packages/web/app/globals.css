@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "@fontsource-variable/inter";
 
 @theme inline {
   --color-background: hsl(var(--background));
@@ -22,10 +23,9 @@
   --color-ring: hsl(var(--ring));
   --color-brand: #2563eb;
 
-  /* Keep font stacks self-contained so builds never fetch Google Fonts. */
-  --font-sans: ui-sans-serif, system-ui, sans-serif;
-  --font-heading: var(--font-heading-face), var(--font-sans);
-  --font-mono: var(--font-mono-face), ui-monospace, "SFMono-Regular", monospace;
+  --font-sans: "Inter Variable";
+  --font-heading: var(--font-heading-face);
+  --font-mono: var(--font-mono-face);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

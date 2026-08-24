@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/mobile-nav";
 import { Icons } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
 import { SunIcon } from "@heroicons/react/24/solid";
 import { siteConfig } from "@/config/site";
 
@@ -49,9 +48,6 @@ export default function CircularNavigation({
         </div>
       ) : null}
       <div className="flex items-center space-x-2">
-        <div className="hidden md:block">
-          <ModeToggle />
-        </div>
         <Link
           href={siteConfig.links.github}
           target="_blank"

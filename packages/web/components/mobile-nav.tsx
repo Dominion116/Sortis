@@ -6,7 +6,6 @@ import { MainNavItem } from "types";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
 import { buttonVariants } from "@/components/ui/button";
-import { ModeToggle } from "@/components/mode-toggle";
 import { useLockBody } from "@/hooks/use-lock-body";
 import { siteConfig } from "@/config/site";
 
@@ -51,7 +50,6 @@ export function MobileNav({ items, children, onNavigate }: MobileNavProps) {
           ))}
         </nav>
         <div className="mt-4 flex items-center space-x-2">
-          <ModeToggle />
           <Link
             href={siteConfig.links.github}
             target="_blank"

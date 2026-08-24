@@ -7,7 +7,6 @@ import DrawLive from "@/components/landing-page/draw-live";
 import NoLoss from "@/components/landing-page/no-loss";
 import Pools from "@/components/landing-page/pools";
 import UnderTheHood from "@/components/landing-page/under-the-hood";
-import Highlights from "@/components/landing-page/highlights";
 import FAQSection from "@/components/landing-page/faq";
 
 export default function IndexPage() {
@@ -22,7 +21,6 @@ export default function IndexPage() {
       <NoLoss />
       <Pools />
       <UnderTheHood />
-      <Highlights />
       <FAQSection />
     </div>
   );

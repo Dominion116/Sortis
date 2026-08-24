@@ -381,6 +381,13 @@ mobile minimum height, 78svh from `sm`, and 78vh on desktop, with its content
 vertically centered; keep mobile viewport sizing on `svh` to avoid browser
 chrome jumps.
 
+Visual follow-up: Features and How It Works now have an explicit responsive
+gap; the old Follow the build highlights section is removed while the existing
+footer remains unchanged. Inter is
+self-hosted through `@fontsource-variable/inter`, with Cal Sans and Noto Sans
+Mono remaining local assets, so the template font stack has no system or
+network fallback. Theme switching is removed and the root is permanently dark.
+
 ---
 
 ### Phase 9 — Pool app: deposit, withdraw, balance reveal (complete)
