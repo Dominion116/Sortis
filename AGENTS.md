@@ -208,10 +208,10 @@ Live addresses (chainId 11155111, deployer/keeper
 
 | | address |
 |---|---|
-| cUSDT | `0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b` |
-| faucet | `0xDACEa85f7f8A2F9D80A7278f207C0dFAe16417B0` |
-| demo pool / draw / yield | `0x92aF68…15aF` / `0x89efaA…40A6` / `0x575Cf6…0243` |
-| standard pool / draw / yield | `0x1d7E3E…395F` / `0xD79fAd…2240` / `0x7B5227…C421` |
+| cUSDT | `0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0` |
+| faucet | `0x5550e92d4C252763797948Fb751c7116809F7cdb` |
+| demo pool / draw / yield | `0x223897…8F97` / `0x30E3eF…1E62` / `0x7C2dF9…2237` |
+| standard pool / draw / yield | `0xCCE648…f990` / `0x31d445…d39e` / `0x41E2a4…1048` |
 
 `packages/contracts/deployments/sepolia.json` is the canonical record. Read
 addresses from there or from the generated
@@ -302,7 +302,7 @@ What landed:
   on. Renders nothing when disconnected: no wallet is not the wrong network.
 - `components/app/connect-button.tsx`, `(app)/` route group with its own layout,
   `config/app.ts`.
-- `/faucet`: live `drip()` against `0xDACEa8…17B0`, reading `dripAmount` and
+- `/faucet`: live `drip()` against the generated Sepolia faucet address, reading `dripAmount` and
   `readyAt(address)`, with a ticking local countdown, mapped revert messages
   (`CooldownNotElapsed`, `OnlyMinter`, user rejection, gas), and an Etherscan
   link on success. Deliberately **not** wrapped in `EncryptedGate`: minting is
@@ -477,7 +477,28 @@ points to `/pool`. Keep this explicit directory when adding pool-related links:
 the `(app)` route group does not contribute a URL segment.
 
 
-### Next: Phase 11
+### Phase 11 — Verification page & prizes (complete)
+
+`/verify/[roundId]` reads the public Ernie event trail for both Sepolia pools,
+including frozen ticket count, published total, random value, settlement prize,
+and explicit rollover state. It requires no wallet and bounds public-RPC history
+to the latest 100,000 blocks.
+
+`/app/prizes` adds the private prize envelope: the connected user decrypts their
+encrypted claimable handle with the existing in-memory EIP-712 session, then
+encrypts the chosen amount and claims through `SortisPool.claim`. Rollover and
+zero-prize outcomes are presented distinctly from a winning reveal.
+
+`SortisPool.claim` was added as the encrypted claim path. It clamps an encrypted
+request to the caller's encrypted claimable balance, updates the claimable slot,
+and transfers the confidential token without publishing the amount.
+
+Web typegen, typecheck, ESLint, and diff checks pass. Contract compilation was
+verified successfully. On restricted Windows runners, Hardhat's compiler child
+process can fail with `HH505`/`spawn EPERM`; run the compile with the workspace's
+approved elevated command policy. The Solidity compiler itself is healthy.
+
+### Next: Phase 12
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
 

@@ -24,6 +24,10 @@ export const appConfig: MarketingConfig = {
       href: "/app/draws",
     },
     {
+      title: "Prizes",
+      href: "/app/prizes",
+    },
+    {
       title: "Faucet",
       href: "/faucet",
     },
