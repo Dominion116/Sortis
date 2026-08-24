@@ -96,6 +96,9 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
      */
     error DepositNotApproved(address depositor);
 
+    /// @notice Thrown when a claim request decrypts to zero.
+    error NothingToClaim();
+
     // ---------------------------------------------------------------------
     // Storage
     // ---------------------------------------------------------------------
@@ -202,6 +205,24 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
     /// @notice The caller's encrypted unclaimed winnings handle.
     function claimableHandleOf(address account) external view returns (euint64) {
         return _claimable[account];
+    }
+
+    /**
+     * @notice Claim part or all of the caller's encrypted winnings.
+     * @dev The requested amount stays encrypted. The pool clamps it to the
+     *      caller's claimable balance, updates the encrypted slot, and sends
+     *      the confidential token without exposing the amount onchain.
+     */
+    function claim(externalEuint64 encryptedAmount, bytes calldata inputProof) external nonReentrant {
+        euint64 requested = FHE.fromExternal(encryptedAmount, inputProof);
+        euint64 available = _claimable[msg.sender];
+        ebool canClaim = FHE.le(requested, available);
+        euint64 amount = FHE.select(canClaim, requested, available);
+        FHE.allowThis(amount);
+        _claimable[msg.sender] = FHE.sub(available, amount);
+        FHE.allowThis(_claimable[msg.sender]);
+        FHE.allow(_claimable[msg.sender], msg.sender);
+        IERC7984(asset).confidentialTransfer(msg.sender, amount);
     }
 
     /// @notice Public ticket metadata. Encrypted fields are returned as handles.

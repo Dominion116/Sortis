@@ -3,17 +3,17 @@
   "chainId": 11155111,
   "deployer": "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
   "keeper": "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
-  "deployedAt": "2026-08-22T08:05:14.167Z",
+  "deployedAt": "2026-08-24T06:47:50.321Z",
   "token": {
-    "address": "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+    "address": "0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0",
     "args": [
       "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
     ]
   },
   "faucet": {
-    "address": "0xDACEa85f7f8A2F9D80A7278f207C0dFAe16417B0",
+    "address": "0x5550e92d4C252763797948Fb751c7116809F7cdb",
     "args": [
-      "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+      "0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0",
       1000000,
       3600,
       "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
@@ -22,25 +22,25 @@
   "demo": {
     "roundDuration": 300,
     "yieldSource": {
-      "address": "0x575Cf61C0FB339D469582fE45219E4bF40e60243",
+      "address": "0x7C2dF99d75a14c224d8AD7d24311334f16B92237",
       "args": [
-        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        "0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0",
         2000,
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
       ]
     },
     "pool": {
-      "address": "0x92aF68E6823D22D5Bd5B8746f1c52b87CE3315aF",
+      "address": "0x2238975477e0F90B2084C5C64c61E41fFe7B8F97",
       "args": [
-        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        "0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0",
         300,
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
       ]
     },
     "draw": {
-      "address": "0x89efaA363468478aeB5CAaf80e21680B129F40A6",
+      "address": "0x30E3eF09C9Ec68bd228f4593382dFF3fe9521E62",
       "args": [
-        "0x92aF68E6823D22D5Bd5B8746f1c52b87CE3315aF",
+        "0x2238975477e0F90B2084C5C64c61E41fFe7B8F97",
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
       ]
@@ -49,25 +49,25 @@
   "standard": {
     "roundDuration": 86400,
     "yieldSource": {
-      "address": "0x7B5227267356f91ff2Cb3306C3ee5b6aBa97C421",
+      "address": "0x41E2a43f1Bff35b230686B2B58121eA1CDfb1048",
       "args": [
-        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        "0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0",
         2000,
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
       ]
     },
     "pool": {
-      "address": "0x1d7E3ED492D6204A25b7B7a0bbE6C9943555395F",
+      "address": "0xCCE648f68874F3bf15Bc713a02b8264a2fD0f990",
       "args": [
-        "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b",
+        "0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0",
         86400,
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
       ]
     },
     "draw": {
-      "address": "0xD79fAd0748D999e9274470f8F3b64571D9e12240",
+      "address": "0x31d445D5A59f74F139926Ccbc56C18ed506ed39e",
       "args": [
-        "0x1d7E3ED492D6204A25b7B7a0bbE6C9943555395F",
+        "0xCCE648f68874F3bf15Bc713a02b8264a2fD0f990",
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e",
         "0x70f77A5C36eBD667360F6021bF4A95d274B3530e"
       ]
