@@ -470,6 +470,12 @@ current path's `HEAD` status before touching headers, `middleware.ts`, or
 `enableCoinbase`. Nothing about COOP needed changing here, and no COOP header
 is set anywhere in the app.
 
+Route placement fix (post-Phase 10): the pool screen is also available at
+`/pool`. The implementation lives at `app/(app)/pool/page.tsx`; the previous
+`/app` location now redirects to `/pool` for compatibility, and app navigation
+points to `/pool`. Keep this explicit directory when adding pool-related links:
+the `(app)` route group does not contribute a URL segment.
+
 
 ### Next: Phase 11
 
