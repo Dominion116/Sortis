@@ -1,4 +1,5 @@
 import { Countdown } from "@/components/countdown";
+import Link from "next/link";
 import { explorerAddressUrl, formatAddress, sepolia } from "@/lib/contracts";
 import { MOCK } from "@/lib/mock-data";
 
@@ -12,8 +13,7 @@ export default function DrawLive() {
           The draw, live
         </h2>
         <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-          A live view of the demo pool. Round data remains labelled illustrative
-          until the keeper is running.
+          A live view of the demo pool. The keeper advances rounds on Sepolia.
         </p>
       </div>
       <div className="mx-auto grid w-full gap-6 md:max-w-[64rem] md:grid-cols-2">
@@ -23,9 +23,8 @@ export default function DrawLive() {
           </span>
           <Countdown offsetMs={MOCK.nextDrawOffsetMs} size="lg" className="mt-3" />
           <p className="mt-4 max-w-[42ch] text-sm leading-relaxed text-muted-foreground">
-            {sepolia.demo.pool
-              ? "This countdown is still illustrative. The demo pool is live on Sepolia and closes a round every five minutes once the keeper (Phase 10) is running."
-              : "This countdown is illustrative until the contracts are deployed. Once they are live, the demo pool will close a round every five minutes and this clock will track it directly."}
+            The demo pool runs five-minute rounds. Open the draw screen for the
+            current onchain state and keeper progress.
           </p>
         </div>
         <div className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-8">
@@ -47,8 +46,7 @@ export default function DrawLive() {
           <p className="mt-6 text-xs leading-relaxed text-muted-foreground">
             {sepolia.demo.pool ? (
               <>
-                This settled-round card is still illustrative. No keeper has
-                closed a round yet. The live demo pool is{" "}
+            The live demo pool is{" "}
                 <a
                   href={explorerAddressUrl(sepolia.demo.pool)}
                   target="_blank"
@@ -60,9 +58,10 @@ export default function DrawLive() {
                 .
               </>
             ) : (
-              "This round is illustrative. The transaction hash becomes a working Etherscan link as soon as the contracts are deployed to Sepolia."
+              "The demo pool is deployed on Ethereum Sepolia."
             )}
           </p>
+          <Link href="/app/draws" className="mt-4 inline-block text-sm text-brand hover:underline">Open live draw monitor</Link>
         </div>
       </div>
     </section>

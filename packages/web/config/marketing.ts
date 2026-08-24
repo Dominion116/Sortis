@@ -8,7 +8,7 @@ export const marketingConfig: MarketingConfig = {
     },
     {
       title: "How it works",
-      href: "/#how-it-works",
+      href: "/how-it-works",
     },
     {
       title: "The draw",

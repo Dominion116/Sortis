@@ -1,4 +1,3 @@
-import { MOCK } from "@/lib/mock-data";
 import {
   explorerAddressUrl,
   formatAddress,
@@ -75,7 +74,7 @@ export default function UnderTheHood() {
             <div className="grid gap-1 py-4 text-sm sm:grid-cols-[9rem_1fr] sm:gap-4">
               <dt className="text-muted-foreground">Test coverage</dt>
               <dd className="tabular font-mono text-foreground">
-                {MOCK.coverage} statements{" "}
+                97.1% statements{" "}
                 <span className="font-sans text-xs text-muted-foreground">
                   (solidity-coverage, mock coprocessor)
                 </span>
@@ -85,7 +84,7 @@ export default function UnderTheHood() {
               <dt className="text-muted-foreground">Repository</dt>
               <dd>
                 <a
-                  href={MOCK.repoUrl}
+                  href="https://github.com/Dominion116/sortis"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-brand hover:underline"
@@ -114,7 +113,7 @@ export default function UnderTheHood() {
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
             {live
               ? "Each address opens Sepolia Etherscan. The contracts are verified, so the source you read is the source that runs."
-              : "These addresses are filled in when the contracts are deployed to Sepolia, and every one of them is verified on Etherscan so the source you read is the source that runs."}
+              : "Deployment addresses will appear here once a Sepolia set is published."}
           </p>
         </div>
       </div>

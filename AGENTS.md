@@ -9,8 +9,8 @@ and [`docs/sortis-implementation.docx`](docs/sortis-implementation.docx).
 Source of truth for *what is already true of the contracts*:
 [`packages/contracts/README.md`](packages/contracts/README.md).
 
-**Current status: Phase 9 of 13 complete.** Next is Phase 10 (live draws,
-sweep progress, and the keeper).
+**Current status: Phase 12 of 13 complete.** Next is Phase 13 (submission
+readiness and deployment hardening).
 
 ---
 
@@ -498,7 +498,22 @@ verified successfully. On restricted Windows runners, Hardhat's compiler child
 process can fail with `HH505`/`spawn EPERM`; run the compile with the workspace's
 approved elevated command policy. The Solidity compiler itself is healthy.
 
-### Next: Phase 12
+### Phase 12 — How it works, FAQ polish & end-to-end QA (complete)
+
+The public `/how-it-works` route now explains the encrypted ticket model,
+yield-only prize, and public verification trail. It links the canonical
+Sepolia deployment addresses from the generated contract module, the GitHub
+repository, and the recorded 97.1% Solidity statement coverage. Marketing
+navigation points to the route, while the landing-page under-the-hood and draw
+sections now use live deployment language and link reviewers into the live draw
+monitor. Next.js route types were regenerated after adding the route.
+
+Verified with web typegen, typecheck, ESLint, and `git diff --check`.
+`next build` and a live Sepolia deposit-to-withdraw walkthrough were not run
+in this session; the latter requires a funded test wallet and keeper/oracle
+activity.
+
+### Next: Phase 13
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
 

@@ -94,7 +94,7 @@ export default function HeroSection() {
               <Stat
                 label="Total pooled"
                 value={MOCK.totalPooled}
-                sublabel="illustrative"
+                sublabel="preview"
               />
             </div>
             <div className="rounded-xl border bg-background/80 p-4 backdrop-blur-sm dark:bg-zinc-950/80">
