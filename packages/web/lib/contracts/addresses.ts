@@ -8,18 +8,18 @@ export type Address = `0x${string}`;
 export const sepolia = {
   chainId: SEPOLIA_CHAIN_ID,
   explorer: SEPOLIA_EXPLORER,
-  token: "0x485b62eEB1931091FA8bBfb37d1a7B9A18EA345b" as Address,
-  faucet: "0xDACEa85f7f8A2F9D80A7278f207C0dFAe16417B0" as Address,
+  token: "0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0" as Address,
+  faucet: "0x5550e92d4C252763797948Fb751c7116809F7cdb" as Address,
   demo: {
-    pool: "0x92aF68E6823D22D5Bd5B8746f1c52b87CE3315aF" as Address,
-    draw: "0x89efaA363468478aeB5CAaf80e21680B129F40A6" as Address,
-    yieldSource: "0x575Cf61C0FB339D469582fE45219E4bF40e60243" as Address,
+    pool: "0x2238975477e0F90B2084C5C64c61E41fFe7B8F97" as Address,
+    draw: "0x30E3eF09C9Ec68bd228f4593382dFF3fe9521E62" as Address,
+    yieldSource: "0x7C2dF99d75a14c224d8AD7d24311334f16B92237" as Address,
     roundDuration: 300,
   },
   standard: {
-    pool: "0x1d7E3ED492D6204A25b7B7a0bbE6C9943555395F" as Address,
-    draw: "0xD79fAd0748D999e9274470f8F3b64571D9e12240" as Address,
-    yieldSource: "0x7B5227267356f91ff2Cb3306C3ee5b6aBa97C421" as Address,
+    pool: "0xCCE648f68874F3bf15Bc713a02b8264a2fD0f990" as Address,
+    draw: "0x31d445D5A59f74F139926Ccbc56C18ed506ed39e" as Address,
+    yieldSource: "0x41E2a43f1Bff35b230686B2B58121eA1CDfb1048" as Address,
     roundDuration: 86400,
   },
 } as const;
