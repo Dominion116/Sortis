@@ -5,7 +5,6 @@ import FooterPrimary from "@/components/footer-primary";
 import { ConnectButton } from "@/components/app/connect-button";
 import { NetworkGuard } from "@/components/app/network-guard";
 import { appConfig } from "@/config/app";
-import { ScrollReveal } from "@/components/motion/scroll-reveal";
 
 /**
  * Shell for the connected-wallet routes.
@@ -23,7 +22,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="container pt-6 sm:pt-8">
           <NetworkGuard />
         </div>
-        <ScrollReveal>{children}</ScrollReveal>
+        {children}
       </main>
       <FooterPrimary />
     </div>

@@ -602,6 +602,13 @@ a directional glint. Keep all motion behind the existing reduced-motion
 preference and avoid adding perpetual decorative animation to operational app
 controls.
 
+Route motion maintenance: both route groups now have `template.tsx` wrappers
+that remount on client navigation and animate page content from a soft lift and
+blur into focus. Matching `loading.tsx` files provide an immediate skeleton
+while a destination streams. Keep navbar transition feedback in the shared
+navigation component, and preserve the reduced-motion behavior in both the
+template and loading UI.
+
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
 
 ---
