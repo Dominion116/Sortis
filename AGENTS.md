@@ -494,7 +494,7 @@ user's instruction, `next build` was not run locally.
 
 `/app/draws` reads both deployed Sepolia draw engines through viem and TanStack Query. It shows the current round countdown, explicit awaiting-oracle copy, live encrypted sweep cursor progress, prize/ticket metadata, and recent settled rounds decoded from `ErnieSettled` logs. Both pools reuse the canonical generated address module.
 
-`/api/cron/keeper` is a Node runtime route protected by `Authorization: Bearer $CRON_SECRET`. It advances each pool by at most one state transition per invocation (open, close, public-decrypt total, draw sweep batch, or public-decrypt and settle), making retries idempotent. It holds `SORTIS_KEEPER_PRIVATE_KEY`, uses Sepolia RPC, and obtains FHEVM 0.11 public-decryption proofs with `@zama-fhe/relayer-sdk/node`. `vercel.json` schedules it every minute.
+`/api/cron/keeper` is a Node runtime route protected by `Authorization: Bearer $CRON_SECRET`. It advances each pool by at most one state transition per invocation (open, close, public-decrypt total, draw sweep batch, or public-decrypt and settle), making retries idempotent. It holds `SORTIS_KEEPER_PRIVATE_KEY`, uses Sepolia RPC, and obtains FHEVM 0.11 public-decryption proofs with `@zama-fhe/relayer-sdk/node`. `vercel.json` schedules it once per day for Vercel Hobby compatibility; minute-level progression requires Vercel Pro or an external scheduler.
 
 Required Vercel environment variables: `CRON_SECRET`, `SORTIS_KEEPER_PRIVATE_KEY`, `NEXT_PUBLIC_SEPOLIA_RPC_URL` (optional fallback exists), and `ZAMA_FHEVM_API_KEY` when the relayer requires authentication. Event history is bounded to the latest 100,000 blocks for public RPC reliability; current state remains live without a database or indexer.
 

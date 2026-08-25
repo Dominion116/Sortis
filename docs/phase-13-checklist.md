@@ -21,8 +21,10 @@ recording.
 Set `CRON_SECRET`, `SORTIS_KEEPER_PRIVATE_KEY`,
 `NEXT_PUBLIC_SEPOLIA_RPC_URL` (or use the documented public fallback), and
 `ZAMA_FHEVM_API_KEY` when the relayer requires it. Keep the keeper key and
-cron secret server-only. Confirm `vercel.json` schedules
-`/api/cron/keeper` and that the route returns `401` without its bearer secret.
+cron secret server-only. On Vercel Hobby, `vercel.json` schedules
+`/api/cron/keeper` once per day at midnight UTC; minute-level progression
+requires Vercel Pro or an external scheduler. Confirm the route returns `401`
+without its bearer secret.
 
 After deployment, call the route once with the secret and inspect the JSON
 action. Each invocation advances each pool by at most one transition; retries
