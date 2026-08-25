@@ -46,9 +46,10 @@ program badge or point to the external Zama site.
 Wagmi pins: keep `@wagmi/connectors@6.2.0` and `@wagmi/core@2.22.1` (root
 `overrides` plus direct web deps). AppKit's optional `@wagmi/connectors: >=5.9.9`
 otherwise installs 8.x, which re-exports Tempo and a missing `accounts` peer
-and fails `next build --webpack` on Vercel. Do not widen those ranges. `accounts`
-and `pino-pretty` are webpack-aliased to `false` in `next.config.ts` for the
-same reason.
+and fails `next build --webpack` on Vercel. Do not widen those ranges.
+Optional peers are dropped with webpack `IgnorePlugin` in `next.config.ts`.
+Do not reassign `config.resolve.alias`; spreading or replacing it wipes Next's
+`@/` mapping and fails `@/components/ui/button`.
 
 Mobile navigation maintenance: the menu is a backdrop with a contained panel,
 has an explicit close button, closes on backdrop clicks, and no longer repeats

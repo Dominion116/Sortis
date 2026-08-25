@@ -18,14 +18,15 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [...new Set([...lanAddresses, ...configuredDevOrigins])],
   // AppKit's connector barrel (and pino inside WalletConnect) dynamically
   // import optional peers. Webpack still tries to resolve them at build time
-  // and fails the Vercel compile if they are absent. `false` tells webpack to
-  // ignore the request; the runtime path is never taken.
-  webpack: (config) => {
-    config.resolve.alias = {
-      ...(config.resolve.alias as Record<string, string | false | string[]>),
-      accounts: false,
-      "pino-pretty": false,
-    };
+  // and fails the Vercel compile if they are absent. IgnorePlugin drops those
+  // requests without replacing `resolve.alias`, which would wipe Next's `@/`
+  // path mapping and fail imports like `@/components/ui/button`.
+  webpack: (config, { webpack }) => {
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^(accounts|pino-pretty)$/,
+      }),
+    );
     return config;
   },
 };
