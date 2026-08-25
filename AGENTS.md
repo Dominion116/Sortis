@@ -47,9 +47,11 @@ Wagmi pins: keep `@wagmi/connectors@6.2.0` and `@wagmi/core@2.22.1` (root
 `overrides` plus direct web deps). AppKit's optional `@wagmi/connectors: >=5.9.9`
 otherwise installs 8.x, which re-exports Tempo and a missing `accounts` peer
 and fails `next build --webpack` on Vercel. Do not widen those ranges.
-Optional peers are dropped with webpack `IgnorePlugin` in `next.config.ts`.
-Do not reassign `config.resolve.alias`; spreading or replacing it wipes Next's
-`@/` mapping and fails `@/components/ui/button`.
+Optional peers are dropped with webpack `IgnorePlugin` in `next.config.ts`
+(`accounts`, `pino-pretty`, `@base-org/account`, `@metamask/connect-evm`).
+Add to that list only packages that are absent; do not ignore WalletConnect
+or other installed connectors. Do not reassign `config.resolve.alias`;
+spreading or replacing it wipes Next's `@/` mapping.
 
 Mobile navigation maintenance: the menu is a backdrop with a contained panel,
 has an explicit close button, closes on backdrop clicks, and no longer repeats
@@ -590,6 +592,15 @@ Verified with web typecheck, ESLint, route type generation, and diff checks.
 The remaining checklist items require access to the production Vercel project,
 a funded Sepolia keeper, and a human-recorded demo, so they are not claimed as
 completed in source control.
+
+Post-Phase 13 motion maintenance: the web UI now uses the shared
+`components/motion/scroll-reveal.tsx` primitives for once-per-section reveals,
+staggered repeated items, the marketing scroll-progress line, and calm app-page
+entrances. Hero and navigation have short first-paint sequences; feature,
+protocol-step, and pool cards use restrained hover lift; the live sweep bar has
+a directional glint. Keep all motion behind the existing reduced-motion
+preference and avoid adding perpetual decorative animation to operational app
+controls.
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
 

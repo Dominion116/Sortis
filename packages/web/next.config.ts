@@ -16,15 +16,17 @@ const nextConfig: NextConfig = {
   // Permit HMR and other dev-only assets when the site is opened from a phone
   // using this machine's LAN address. Extra hostnames can be comma-separated.
   allowedDevOrigins: [...new Set([...lanAddresses, ...configuredDevOrigins])],
-  // AppKit's connector barrel (and pino inside WalletConnect) dynamically
-  // import optional peers. Webpack still tries to resolve them at build time
-  // and fails the Vercel compile if they are absent. IgnorePlugin drops those
-  // requests without replacing `resolve.alias`, which would wipe Next's `@/`
-  // path mapping and fail imports like `@/components/ui/button`.
+  // AppKit imports the `@wagmi/connectors` barrel, which dynamically loads
+  // optional wallet SDKs. Webpack still resolves those requests at build time
+  // and fails if the package is not installed. IgnorePlugin drops the missing
+  // peers without replacing `resolve.alias` (that wipe Next's `@/` mapping).
+  // Only list packages that are absent; ignoring an installed one would
+  // break that connector at runtime.
   webpack: (config, { webpack }) => {
     config.plugins.push(
       new webpack.IgnorePlugin({
-        resourceRegExp: /^(accounts|pino-pretty)$/,
+        resourceRegExp:
+          /^(accounts|pino-pretty|@base-org\/account|@metamask\/connect-evm)$/,
       }),
     );
     return config;
