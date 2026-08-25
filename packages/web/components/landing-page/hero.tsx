@@ -34,13 +34,13 @@ export default function HeroSection() {
       <div className="container mx-auto px-4 py-12 md:py-16 lg:py-24">
         <div className="relative z-10 mx-auto flex max-w-[64rem] flex-col items-center gap-4 text-center">
           <motion.div initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
-          <Link href="/app/draws" className="w-fit">
+          <Link href="/app/draws" className="block w-fit max-w-[15rem] sm:max-w-none">
             <div
               className={cn(
-                "group rounded-full border border-black/5 bg-neutral-100 text-base text-foreground transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800",
+                "group rounded-full border border-black/5 bg-neutral-100 text-xs text-foreground transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800 sm:whitespace-nowrap",
               )}
             >
-              <AnimatedGradientText className="inline-flex items-center justify-center px-4 py-2 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
+              <AnimatedGradientText className="inline-flex items-center justify-center px-3 py-1.5 leading-5 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
                 <span
                   className={cn(
                     "inline animate-gradient bg-gradient-to-r from-[#b76a24] via-[#6a24b7] to-[#b76a24] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent [--bg-size:300%]",
@@ -48,13 +48,13 @@ export default function HeroSection() {
                 >
                   Live on Ethereum Sepolia · Watch the draw
                 </span>
-                <ArrowRightIcon className="ml-2 size-4 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
+                <ArrowRightIcon className="ml-1.5 size-3.5 shrink-0 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
               </AnimatedGradientText>
             </div>
           </Link>
           </motion.div>
 
-          <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="font-heading text-2xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+          <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="font-heading text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
             Everyone saves together, one person wins the yield, and nobody can
             see who holds what.
           </motion.h1>
