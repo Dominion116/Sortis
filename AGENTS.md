@@ -43,6 +43,10 @@ The landing hero badge is product-focused: `Live on Ethereum Sepolia · Watch
 the draw`, linking to `/app/draws`; it should not be relabeled as a Zama
 program badge or point to the external Zama site.
 
+Mobile navigation maintenance: the menu is a backdrop with a contained panel,
+has an explicit close button, closes on backdrop clicks, and no longer repeats
+the Sortis logo/icon inside the dropdown.
+
 ---
 
 ## What this project is

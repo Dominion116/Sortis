@@ -10,28 +10,27 @@ import { useLockBody } from "@/hooks/use-lock-body";
 interface MobileNavProps {
   items: MainNavItem[];
   children?: React.ReactNode;
+  onClose?: () => void;
   /** Closes the menu once a link is taken, so the panel never covers the target. */
   onNavigate?: () => void;
 }
 
-export function MobileNav({ items, children, onNavigate }: MobileNavProps) {
+export function MobileNav({ items, children, onClose, onNavigate }: MobileNavProps) {
   useLockBody();
 
   return (
     <div
       role="dialog"
       aria-label="Mobile navigation"
-      className={cn(
-        "fixed inset-0 top-4 z-50 mx-auto grid h-[calc(100vh-4rem)] w-full grid-flow-row auto-rows-max overflow-auto p-6 pb-32 shadow-md animate-in slide-in-from-bottom-80 md:hidden",
-      )}
+      className="fixed inset-0 z-50 bg-background/30 p-4 backdrop-blur-sm animate-in fade-in md:hidden"
+      onClick={onClose}
     >
-      <div className="relative z-20 grid gap-6 rounded-md bg-popover p-4 text-popover-foreground shadow-md">
-        <Link href="/" className="flex items-center space-x-2" onClick={onNavigate}>
-          <Icons.Eclipse />
-          <span className="font-heading font-bold">
-            Sortis<span className="text-brand">.</span>
-          </span>
-        </Link>
+      <div className="mx-auto mt-16 grid w-full max-w-sm gap-6 rounded-xl bg-popover p-4 text-popover-foreground shadow-xl animate-in slide-in-from-top-2" onClick={(event) => event.stopPropagation()}>
+        <div className="flex justify-end">
+          <button type="button" aria-label="Close navigation" className="rounded-md p-2 hover:bg-muted" onClick={onClose}>
+            <Icons.close className="size-5" />
+          </button>
+        </div>
         <nav className="grid auto-rows-max grid-flow-row items-center text-center text-sm">
           {items.map((item, index) => (
             <Link

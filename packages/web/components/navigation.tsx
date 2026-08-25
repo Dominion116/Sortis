@@ -59,7 +59,7 @@ export default function CircularNavigation({
       </div>
       {showMobileMenu && items ? (
         <div id="mobile-navigation" className="absolute top-full right-0 left-0 mt-2 w-full md:hidden">
-          <MobileNav items={items} onNavigate={() => setShowMobileMenu(false)}>
+          <MobileNav items={items} onClose={() => setShowMobileMenu(false)} onNavigate={() => setShowMobileMenu(false)}>
             {action ?? children}
           </MobileNav>
         </div>
