@@ -22,9 +22,5 @@ export const marketingConfig: MarketingConfig = {
       title: "FAQ",
       href: "/#faq",
     },
-    {
-      title: "Faucet",
-      href: "/faucet",
-    },
   ],
 };

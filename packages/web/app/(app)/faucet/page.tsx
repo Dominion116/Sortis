@@ -10,26 +10,18 @@ export const metadata: Metadata = {
 
 export default function FaucetPage() {
   return (
-    <section className="section-shell max-w-3xl space-y-8">
+    <section className="section-shell space-y-10">
       <div className="space-y-3">
-        <p className="font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Sepolia testnet
-        </p>
-        <h1 className="font-heading text-4xl tracking-tight md:text-5xl">
-          Get test {TOKEN_SYMBOL}
-        </h1>
-        <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-          Sortis pools hold {TOKEN_SYMBOL}, a confidential ERC-7984 token
-          deployed for this demo. Claim some here, then deposit it into a pool.
-          It has no value outside Sepolia.
-        </p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sepolia testnet</p>
+        <h1 className="max-w-3xl font-heading text-4xl tracking-tight md:text-5xl">Fund your first private deposit.</h1>
+        <p className="max-w-2xl text-base leading-7 text-muted-foreground">Claim test {TOKEN_SYMBOL}, then use it in a Sortis pool. This faucet is a simple public bridge into the encrypted experience.</p>
       </div>
 
-      <FaucetCard />
-
-      <div className="rounded-xl border bg-card p-5 sm:p-6">
-        <h2 className="mb-4 text-lg font-medium">What you should know</h2>
-        <ul className="space-y-3 font-sans text-sm leading-relaxed text-muted-foreground">
+      <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
+        <FaucetCard />
+        <div className="space-y-5 rounded-xl border bg-card p-5 sm:p-6">
+        <div><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Before you claim</p><h2 className="mt-2 text-xl font-medium">A few useful details</h2></div>
+        <ul className="space-y-3 text-sm leading-relaxed text-muted-foreground">
           <li>
             You need Sepolia ETH for gas. The faucet only mints {TOKEN_SYMBOL},
             it does not fund your wallet with ETH.
@@ -60,6 +52,7 @@ export default function FaucetPage() {
             </li>
           ) : null}
         </ul>
+        </div>
       </div>
     </section>
   );

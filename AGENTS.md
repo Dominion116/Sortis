@@ -33,6 +33,16 @@ removed from the shared navbar. Marketing navigation now uses a `Connect
 wallet` link to `/app`; app navigation renders the same control and changes it
 to the truncated connected address, which disconnects on click.
 
+Current navigation polish: the marketing navbar no longer lists Faucet and its
+action is `Open app`; the app navbar no longer lists Home because the Sortis
+logo already links home. Faucet remains available inside the app navigation.
+The faucet screen uses the same section-shell and two-column card layout as the
+pool and draw screens.
+
+The landing hero badge is product-focused: `Live on Ethereum Sepolia · Watch
+the draw`, linking to `/app/draws`; it should not be relabeled as a Zama
+program badge or point to the external Zama site.
+
 ---
 
 ## What this project is

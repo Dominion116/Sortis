@@ -5,9 +5,7 @@ import Link from "next/link";
 import { MainNavItem } from "types";
 import { cn } from "@/lib/utils";
 import { Icons } from "@/components/icons";
-import { buttonVariants } from "@/components/ui/button";
 import { useLockBody } from "@/hooks/use-lock-body";
-import { siteConfig } from "@/config/site";
 
 interface MobileNavProps {
   items: MainNavItem[];
@@ -49,16 +47,6 @@ export function MobileNav({ items, children, onNavigate }: MobileNavProps) {
             </Link>
           ))}
         </nav>
-        <div className="mt-4 flex items-center space-x-2">
-          <Link
-            href={siteConfig.links.github}
-            target="_blank"
-            rel="noreferrer"
-            className={cn(buttonVariants({ variant: "secondary", size: "sm" }), "px-4")}
-          >
-            Repository
-          </Link>
-        </div>
         {children}
       </div>
     </div>

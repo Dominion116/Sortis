@@ -12,10 +12,6 @@ import { MarketingConfig } from "types";
 export const appConfig: MarketingConfig = {
   mainNav: [
     {
-      title: "Home",
-      href: "/",
-    },
-    {
       title: "Pool",
       href: "/pool",
     },

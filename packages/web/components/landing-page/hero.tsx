@@ -32,7 +32,7 @@ export default function HeroSection() {
       </div>
       <div className="container mx-auto px-4 py-12 md:py-16 lg:py-24">
         <div className="relative z-10 mx-auto flex max-w-[64rem] flex-col items-center gap-4 text-center">
-          <Link href={siteConfig.links.zama} target="_blank" rel="noreferrer" className="w-fit">
+          <Link href="/app/draws" className="w-fit">
             <div
               className={cn(
                 "group rounded-full border border-black/5 bg-neutral-100 text-base text-foreground transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800",
@@ -44,7 +44,7 @@ export default function HeroSection() {
                     "inline animate-gradient bg-gradient-to-r from-[#b76a24] via-[#6a24b7] to-[#b76a24] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent [--bg-size:300%]",
                   )}
                 >
-                  Zama Developer Program, Mainnet Season 4
+                  Live on Ethereum Sepolia · Watch the draw
                 </span>
                 <ArrowRightIcon className="ml-2 size-4 transition-transform duration-300 ease-in-out group-hover:translate-x-0.5" />
               </AnimatedGradientText>

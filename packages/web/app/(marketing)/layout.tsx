@@ -15,7 +15,7 @@ export default function MarketingLayout({ children }: MarketingLayoutProps) {
     <div className="flex min-h-screen w-full flex-col items-center">
       <CircularNavigation
         items={marketingConfig.mainNav}
-        action={<Button asChild className="rounded-full" size="sm"><Link href="/app">Connect wallet</Link></Button>}
+        action={<Button asChild className="rounded-full" size="sm"><Link href="/app">Open app</Link></Button>}
       />
       <main className="w-full flex-1">{children}</main>
       <FooterPrimary />
