@@ -104,6 +104,10 @@ absent (npm workspace hoisting breaks it); `scripts/deploy.ts` uses plain ethers
 - Public decryption in this toolchain is FHEVM 0.11:
   `FHE.makePubliclyDecryptable` on chain, `fhevm.publicDecrypt` off chain,
   `FHE.checkSignatures` on the way back. There is no `FHE.requestDecryption`.
+- Never run `next build`, `npm run build`, or any other production compile of
+  `packages/web` on this machine. It saturates the PC and network. Production
+  web builds run only on Vercel; wait for the user to paste the Vercel log if
+  one fails. `npm run typecheck`, `eslint`, and `next typegen` stay allowed.
 
 ---
 
@@ -597,6 +601,7 @@ Build `/verify/[roundId]` from the public draw event trail, then add `/app/prize
 npm run dev                     # web on :3000
 npm run lint                    # web eslint
 npm run typecheck               # web tsc --noEmit
+# do not run npm run build / next build locally; Vercel is the compile
 npm run contracts:compile
 npm run contracts:abis          # regenerate packages/web/lib/contracts/abis.ts
 npm run contracts:test

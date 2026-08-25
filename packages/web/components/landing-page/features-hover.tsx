@@ -3,8 +3,11 @@
 import { features } from "@/config/features";
 import { motion } from "framer-motion";
 import React from "react";
+import { ScrollStagger, StaggerItem } from "@/components/motion/scroll-reveal";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export default function FeaturesHover() {
+  const reduceMotion = useReducedMotion();
   return (
     <section
       id="features"
@@ -18,13 +21,13 @@ export default function FeaturesHover() {
           The pool, yield, and draw all run over encrypted balances.
         </p>
       </div>
-      <div className="mx-auto grid w-full gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
+      <ScrollStagger className="mx-auto grid w-full gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
         {features.map((feature) => (
+          <StaggerItem key={feature.title}>
           <motion.div
-            whileHover={{ y: -8 }}
-            transition={{ type: "spring", bounce: 0.7 }}
-            key={feature.title}
-            className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-6"
+            whileHover={reduceMotion ? undefined : { y: -6 }}
+            transition={{ type: "spring", stiffness: 320, damping: 22 }}
+            className="motion-card relative h-full overflow-hidden rounded-xl border bg-card p-5 sm:p-6"
           >
             <a href={feature.link}>
               <svg
@@ -44,8 +47,9 @@ export default function FeaturesHover() {
               </div>
             </a>
           </motion.div>
+          </StaggerItem>
         ))}
-      </div>
+      </ScrollStagger>
     </section>
   );
 }

@@ -9,6 +9,7 @@ import Ripple from "@/components/magicui/ripple";
 import AnimatedGradientText from "@/components/magicui/animated-shiny-text";
 import { ArrowRightIcon, GitHubLogoIcon } from "@radix-ui/react-icons";
 import { useHasMounted, useReducedMotion } from "@/hooks/use-reduced-motion";
+import { motion } from "framer-motion";
 
 export default function HeroSection() {
   const mounted = useHasMounted();
@@ -32,6 +33,7 @@ export default function HeroSection() {
       </div>
       <div className="container mx-auto px-4 py-12 md:py-16 lg:py-24">
         <div className="relative z-10 mx-auto flex max-w-[64rem] flex-col items-center gap-4 text-center">
+          <motion.div initial={reduceMotion ? false : { opacity: 0, y: 12 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.1 }}>
           <Link href="/app/draws" className="w-fit">
             <div
               className={cn(
@@ -50,16 +52,17 @@ export default function HeroSection() {
               </AnimatedGradientText>
             </div>
           </Link>
+          </motion.div>
 
-          <h1 className="font-heading text-2xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
+          <motion.h1 initial={reduceMotion ? false : { opacity: 0, y: 18 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="font-heading text-2xl font-bold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl">
             Everyone saves together, one person wins the yield, and nobody can
             see who holds what.
-          </h1>
-          <div className="max-w-[42rem] p-2 font-mono text-base leading-7 text-foreground sm:text-lg">
+          </motion.h1>
+          <motion.div initial={reduceMotion ? false : { opacity: 0 }} animate={reduceMotion ? undefined : { opacity: 1 }} transition={{ duration: 0.7, delay: 0.35 }} className="max-w-[42rem] p-2 font-mono text-base leading-7 text-foreground sm:text-lg">
             Confidential prize savings on Zama. Your principal stays yours; the
             pool&apos;s yield funds one private winner each round.
-          </div>
-          <div className="flex flex-wrap justify-center gap-4">
+          </motion.div>
+          <motion.div initial={reduceMotion ? false : { opacity: 0, y: 14 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }} className="flex flex-wrap justify-center gap-4">
             <Link
               href="/#how-it-works"
               className={cn(
@@ -80,7 +83,7 @@ export default function HeroSection() {
             >
               GitHub <GitHubLogoIcon className="ml-2" />
             </Link>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

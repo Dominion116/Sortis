@@ -5,6 +5,7 @@ import FooterPrimary from "@/components/footer-primary";
 import { marketingConfig } from "@/config/marketing";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { ScrollProgress } from "@/components/motion/scroll-reveal";
 
 interface MarketingLayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ interface MarketingLayoutProps {
 export default function MarketingLayout({ children }: MarketingLayoutProps) {
   return (
     <div className="flex min-h-screen w-full flex-col items-center">
+      <ScrollProgress />
       <CircularNavigation
         items={marketingConfig.mainNav}
         action={<Button asChild className="rounded-full" size="sm"><Link href="/app">Open app</Link></Button>}

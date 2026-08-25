@@ -6,6 +6,8 @@ import { MainNavItem } from "types";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/mobile-nav";
 import { Icons } from "@/components/icons";
+import { motion } from "framer-motion";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 interface CircularNavProps {
   items?: MainNavItem[];
@@ -19,9 +21,10 @@ export default function CircularNavigation({
   children,
 }: CircularNavProps) {
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
+  const reduceMotion = useReducedMotion();
 
   return (
-    <nav aria-label="Primary navigation" className="relative z-40 mx-auto mt-3 flex w-[calc(100%-1.5rem)] flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/90 p-2 shadow-sm backdrop-blur md:mt-5 md:w-fit md:gap-10 md:rounded-full md:px-5">
+    <motion.nav initial={reduceMotion ? false : { opacity: 0, y: -12 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }} aria-label="Primary navigation" className="relative z-40 mx-auto mt-3 flex w-[calc(100%-1.5rem)] flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/90 p-2 shadow-sm backdrop-blur md:mt-5 md:w-fit md:gap-10 md:rounded-full md:px-5">
       <Link href="/" className="flex items-center space-x-2">
         <span className="font-heading text-lg font-extrabold tracking-tightest md:text-xl">
           SORTIS<span className="text-brand">.</span>
@@ -64,6 +67,6 @@ export default function CircularNavigation({
           </MobileNav>
         </div>
       ) : null}
-    </nav>
+    </motion.nav>
   );
 }

@@ -3,6 +3,8 @@
 import { motion } from "framer-motion";
 import { CiphertextReveal } from "@/components/ciphertext-reveal";
 import { MOCK } from "@/lib/mock-data";
+import { ScrollStagger, StaggerItem } from "@/components/motion/scroll-reveal";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 const BEATS = [
   {
@@ -23,6 +25,7 @@ const BEATS = [
 ] as const;
 
 export default function HowItWorks() {
+  const reduceMotion = useReducedMotion();
   return (
     <section
       id="how-it-works"
@@ -37,13 +40,13 @@ export default function HowItWorks() {
           decrypting anyone&apos;s balance.
         </p>
       </div>
-      <div className="mx-auto grid w-full gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
+      <ScrollStagger className="mx-auto grid w-full gap-6 sm:grid-cols-2 md:max-w-[64rem] md:grid-cols-3">
         {BEATS.map((beat) => (
+          <StaggerItem key={beat.index}>
           <motion.div
-            whileHover={{ y: -8 }}
-            transition={{ type: "spring", bounce: 0.7 }}
-            key={beat.index}
-            className="relative overflow-hidden rounded-xl border bg-card p-5 sm:p-6"
+            whileHover={reduceMotion ? undefined : { y: -6 }}
+            transition={{ type: "spring", stiffness: 320, damping: 22 }}
+            className="motion-card relative h-full overflow-hidden rounded-xl border bg-card p-5 sm:p-6"
           >
             <div className="mb-2 font-mono text-sm text-muted-foreground">{beat.index}</div>
             <div className="mb-2 text-lg font-medium text-foreground">
@@ -76,8 +79,9 @@ export default function HowItWorks() {
               </div>
             ) : null}
           </motion.div>
+          </StaggerItem>
         ))}
-      </div>
+      </ScrollStagger>
     </section>
   );
 }

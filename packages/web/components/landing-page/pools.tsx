@@ -11,8 +11,12 @@ import {
   CardContent,
 } from "@/components/ui/card-header";
 import { pools } from "@/config/pools";
+import { motion } from "framer-motion";
+import { ScrollStagger, StaggerItem } from "@/components/motion/scroll-reveal";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 export default function Pools() {
+  const reduceMotion = useReducedMotion();
   return (
     <section className="section-shell" id="pools">
       <div className="flex min-h-0 w-full flex-col items-center justify-center">
@@ -22,9 +26,11 @@ export default function Pools() {
         <p className="mt-4 max-w-2xl text-center text-base leading-7 text-muted-foreground sm:text-lg">
           Choose free test tokens, the fast demo, or the standard pool.
         </p>
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
+        <ScrollStagger className="mt-10 grid gap-6 md:grid-cols-3">
           {pools.map((pool) => (
-            <Card key={pool.id} className="w-full max-w-sm rounded-xl border">
+            <StaggerItem key={pool.id}>
+            <motion.div whileHover={reduceMotion ? undefined : { y: -6 }} transition={{ type: "spring", stiffness: 320, damping: 22 }} className="h-full">
+            <Card className="motion-card h-full w-full max-w-sm rounded-xl border">
               <CardHeader className="flex flex-col justify-center rounded-t-xl">
                 <div className="flex items-center">
                   <Moon className="h-8 w-8 fill-zinc-500 text-gray-600" />
@@ -57,8 +63,10 @@ export default function Pools() {
                 </ul>
               </CardContent>
             </Card>
+            </motion.div>
+            </StaggerItem>
           ))}
-        </div>
+        </ScrollStagger>
       </div>
     </section>
   );
