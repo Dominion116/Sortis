@@ -27,7 +27,7 @@ export const MOCK = {
   repoUrl: "https://github.com/Dominion116/sortis",
 
   problemComparison: {
-    publicPoolName: "a typical onchain prize pool",
+    publicPoolName: "A typical onchain prize pool",
     rows: [
       { address: "0x8f2A...c91B", balance: "12,450.00", odds: "1 in 88" },
       { address: "0x1cE7...4a02", balance: "890.25", odds: "1 in 1,240" },
