@@ -37,10 +37,10 @@ export default function HeroSection() {
           <Link href="/app/draws" className="block w-fit max-w-[15rem] sm:max-w-none">
             <div
               className={cn(
-                "group rounded-full border border-black/5 bg-neutral-100 text-xs text-foreground transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800 sm:whitespace-nowrap",
+                "group rounded-full border border-black/5 bg-neutral-100 text-xs text-foreground transition-all ease-in hover:cursor-pointer hover:bg-neutral-200 dark:border-white/5 dark:bg-neutral-900 dark:hover:bg-neutral-800 sm:whitespace-nowrap lg:text-sm",
               )}
             >
-              <AnimatedGradientText className="inline-flex items-center justify-center px-3 py-1.5 leading-5 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400">
+              <AnimatedGradientText className="inline-flex items-center justify-center px-3 py-1.5 leading-5 transition ease-out hover:text-neutral-600 hover:duration-300 hover:dark:text-neutral-400 lg:px-4 lg:py-2">
                 <span
                   className={cn(
                     "inline animate-gradient bg-gradient-to-r from-[#b76a24] via-[#6a24b7] to-[#b76a24] bg-[length:var(--bg-size)_100%] bg-clip-text text-transparent [--bg-size:300%]",
@@ -62,12 +62,12 @@ export default function HeroSection() {
             Confidential prize savings on Zama. Your principal stays yours; the
             pool&apos;s yield funds one private winner each round.
           </motion.div>
-          <motion.div initial={reduceMotion ? false : { opacity: 0, y: 14 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }} className="flex flex-wrap justify-center gap-4">
+          <motion.div initial={reduceMotion ? false : { opacity: 0, y: 14 }} animate={reduceMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.45 }} className="flex flex-nowrap justify-center gap-2 sm:gap-4">
             <Link
               href="/#how-it-works"
               className={cn(
                 buttonVariants({ size: "xl" }),
-                "rounded-full border-2 border-primary text-white dark:border-white dark:text-zinc-900",
+                "shrink-0 rounded-full border-2 border-primary px-3 text-sm text-white dark:border-white dark:text-zinc-900 sm:px-6 sm:text-base",
               )}
             >
               See how it works
@@ -78,7 +78,7 @@ export default function HeroSection() {
               rel="noreferrer"
               className={cn(
                 buttonVariants({ variant: "outline", size: "xl" }),
-                "rounded-full border-2 border-primary font-medium dark:border-white",
+                "shrink-0 rounded-full border-2 border-primary px-3 text-sm font-medium dark:border-white sm:px-6 sm:text-base",
               )}
             >
               GitHub <GitHubLogoIcon className="ml-2" />

@@ -14,20 +14,25 @@ export default function LogoCloud() {
         Powered by
       </p>
       <div className="logo-cloud-container">
-        <div className="my-12 grid grid-cols-2 place-items-center justify-center gap-y-6 sm:mt-8 sm:grid-cols-3 sm:gap-10 md:mx-auto md:max-w-3xl md:grid-cols-6">
-          {dependencies.map((dependency) => (
+        <div className="logo-cloud-track my-12 sm:mt-8">
+          {[false, true].map((duplicate) => (
             <div
-              key={dependency.name}
-              className="flex h-15 w-28 items-center justify-center"
+              key={String(duplicate)}
+              className="logo-cloud-group"
+              aria-hidden={duplicate || undefined}
             >
-              <a
-                href={dependency.href}
-                target="_blank"
-                rel="noreferrer"
-                className="text-center text-sm font-semibold tracking-tight text-primary transition-colors hover:text-brand"
-              >
-                {dependency.name}
-              </a>
+              {dependencies.map((dependency) => (
+                <a
+                  key={dependency.name}
+                  href={dependency.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  tabIndex={duplicate ? -1 : undefined}
+                  className="flex h-15 w-32 shrink-0 items-center justify-center whitespace-nowrap text-center text-sm font-semibold tracking-tight text-primary transition-colors hover:text-brand"
+                >
+                  {dependency.name}
+                </a>
+              ))}
             </div>
           ))}
         </div>
