@@ -17,9 +17,29 @@ const fontHeading = localFont({
   weight: "600",
 });
 
+const fontSans = localFont({
+  src: [
+    {
+      path: "../assets/fonts/Inter-Regular.ttf",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../assets/fonts/Inter-Bold.ttf",
+      weight: "700",
+      style: "normal",
+    },
+  ],
+  variable: "--font-sans-face",
+  display: "swap",
+  preload: true,
+});
+
 const fontMono = localFont({
-  src: "../assets/fonts/NotoSansMono-VariableFont_wdth,wght.ttf",
+  src: "../assets/fonts/GeistMono-Regular.woff2",
   variable: "--font-mono-face",
+  weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -64,7 +84,8 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       <head />
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-background font-mono antialiased",
+          fontSans.variable,
           fontHeading.variable,
           fontMono.variable,
         )}

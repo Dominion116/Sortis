@@ -55,7 +55,7 @@ export default function HeroSection() {
             Everyone saves together, one person wins the yield, and nobody can
             see who holds what.
           </h1>
-          <div className="max-w-[42rem] p-2 text-base leading-7 text-muted-foreground sm:text-lg">
+          <div className="max-w-[42rem] p-2 font-mono text-base leading-7 text-foreground sm:text-lg">
             Confidential prize savings on Zama. Your principal stays yours; the
             pool&apos;s yield funds one private winner each round.
           </div>

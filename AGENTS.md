@@ -13,6 +13,26 @@ Source of truth for *what is already true of the contracts*:
 external submission: production Vercel verification, keeper funding, live
 walkthrough recording, and bounty-form publication.
 
+### Post-Phase 13 maintenance
+
+AppKit is initialized lazily from the connect control rather than at provider
+module load. This prevents WalletConnect remote configuration requests from
+running on public pages and surfacing transient relay failures as Next.js
+client error overlays. Keep `getAppKit()` as the only AppKit creation path.
+
+The web font stack now uses the Hiraki template's exact local `Inter-Regular`
+and `Inter-Bold` files through `next/font/local`; do not restore the variable
+`@fontsource` import or rely on a system fallback.
+
+The Hiraki template applies `font-mono` to the root body, so Sortis does too.
+The hero tagline explicitly keeps `font-mono`; its token is backed by the
+bundled Geist Mono face to match the template-style mono rendering.
+
+Navigation maintenance: the decorative sun icon and repository action were
+removed from the shared navbar. Marketing navigation now uses a `Connect
+wallet` link to `/app`; app navigation renders the same control and changes it
+to the truncated connected address, which disconnects on click.
+
 ---
 
 ## What this project is

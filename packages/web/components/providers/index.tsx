@@ -3,11 +3,9 @@
 import * as React from "react";
 import dynamic from "next/dynamic";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createAppKit } from "@reown/appkit/react";
 import { cookieToInitialState, WagmiProvider, type Config } from "wagmi";
 
-import { projectId, sortisNetwork, wagmiAdapter, wagmiConfig } from "@/lib/wagmi";
-import { siteConfig } from "@/config/site";
+import { wagmiConfig } from "@/lib/wagmi";
 
 /**
  * The Relayer SDK is browser-only, so `FhevmProvider` is mounted through
@@ -23,35 +21,6 @@ const FhevmProvider = dynamic(
   () => import("@/components/providers/fhevm-provider").then((mod) => mod.FhevmProvider),
   { ssr: false },
 );
-
-/**
- * AppKit's modal is created once per page load, at module scope, not inside a
- * component. Creating it in a render pass registers duplicate WalletConnect
- * listeners on every remount.
- *
- * Skipped entirely without a project id: `createAppKit` throws on an empty
- * one, and we would rather degrade to injected-wallet-only than white-screen a
- * fresh clone of the repo.
- */
-if (typeof window !== "undefined" && projectId) {
-  createAppKit({
-    adapters: [wagmiAdapter],
-    networks: [sortisNetwork],
-    defaultNetwork: sortisNetwork,
-    projectId,
-    metadata: {
-      name: siteConfig.name,
-      description: siteConfig.description,
-      url: siteConfig.url,
-      icons: [`${siteConfig.url}/favicon.ico`],
-    },
-    features: {
-      analytics: false,
-      email: false,
-      socials: false,
-    },
-  });
-}
 
 /** One QueryClient per browser session, never one per render. */
 function makeQueryClient() {

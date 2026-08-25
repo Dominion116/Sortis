@@ -17,9 +17,7 @@ import { appConfig } from "@/config/app";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full flex-col items-center">
-      <CircularNavigation items={appConfig.mainNav}>
-        <ConnectButton className="mt-4" />
-      </CircularNavigation>
+      <CircularNavigation items={appConfig.mainNav} action={<ConnectButton />} />
       <main className="w-full flex-1">
         <div className="container pt-6 sm:pt-8">
           <NetworkGuard />

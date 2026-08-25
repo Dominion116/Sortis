@@ -6,17 +6,16 @@ import { MainNavItem } from "types";
 import { cn } from "@/lib/utils";
 import { MobileNav } from "@/components/mobile-nav";
 import { Icons } from "@/components/icons";
-import { buttonVariants } from "@/components/ui/button";
-import { SunIcon } from "@heroicons/react/24/solid";
-import { siteConfig } from "@/config/site";
 
 interface CircularNavProps {
   items?: MainNavItem[];
+  action?: React.ReactNode;
   children?: React.ReactNode;
 }
 
 export default function CircularNavigation({
   items,
+  action,
   children,
 }: CircularNavProps) {
   const [showMobileMenu, setShowMobileMenu] = React.useState<boolean>(false);
@@ -24,9 +23,6 @@ export default function CircularNavigation({
   return (
     <nav aria-label="Primary navigation" className="relative z-40 mx-auto mt-3 flex w-[calc(100%-1.5rem)] flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-background/90 p-2 shadow-sm backdrop-blur md:mt-5 md:w-fit md:gap-10 md:rounded-full md:px-5">
       <Link href="/" className="flex items-center space-x-2">
-        <div className="rounded-full bg-slate-50 p-1 dark:bg-slate-900">
-          <SunIcon className="size-8 transition-transform duration-300 ease-in-out hover:scale-110" />
-        </div>
         <span className="font-heading text-lg font-extrabold tracking-tightest md:text-xl">
           SORTIS<span className="text-brand">.</span>
         </span>
@@ -48,17 +44,7 @@ export default function CircularNavigation({
         </div>
       ) : null}
       <div className="flex items-center space-x-2">
-        <Link
-          href={siteConfig.links.github}
-          target="_blank"
-          rel="noreferrer"
-          className={cn(
-            buttonVariants({ variant: "outline", size: "sm" }),
-            "hidden rounded-full p-2 text-xs md:inline-flex md:p-5 md:text-sm",
-          )}
-        >
-          Repository
-        </Link>
+        <div className="hidden md:block">{action}</div>
         <button
           type="button"
           aria-expanded={showMobileMenu}
@@ -74,7 +60,7 @@ export default function CircularNavigation({
       {showMobileMenu && items ? (
         <div id="mobile-navigation" className="absolute top-full right-0 left-0 mt-2 w-full md:hidden">
           <MobileNav items={items} onNavigate={() => setShowMobileMenu(false)}>
-            {children}
+            {action ?? children}
           </MobileNav>
         </div>
       ) : null}

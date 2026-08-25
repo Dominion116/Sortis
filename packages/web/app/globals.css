@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@fontsource-variable/inter";
 
 @theme inline {
   --color-background: hsl(var(--background));
@@ -23,7 +22,7 @@
   --color-ring: hsl(var(--ring));
   --color-brand: #2563eb;
 
-  --font-sans: "Inter Variable";
+  --font-sans: var(--font-sans-face);
   --font-heading: var(--font-heading-face);
   --font-mono: var(--font-mono-face);
 
@@ -222,7 +221,7 @@
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    font-family: var(--font-sans);
+    font-family: var(--font-mono);
     font-size: 0.9375rem;
     line-height: 1.6;
     font-feature-settings: "rlig" 1, "calt" 1;
