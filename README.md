@@ -264,24 +264,24 @@ Shared:
 
 | Contract | Address |
 |---|---|
-| Confidential token (cUSDT) | [`0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0`](https://sepolia.etherscan.io/address/0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0) |
-| `SortisFaucet` | [`0x5550e92d4C252763797948Fb751c7116809F7cdb`](https://sepolia.etherscan.io/address/0x5550e92d4C252763797948Fb751c7116809F7cdb) |
+| Confidential token (cUSDT) | [`0xd82C37256145dd6554d9090bF679a6c18e0680d1`](https://sepolia.etherscan.io/address/0xd82C37256145dd6554d9090bF679a6c18e0680d1) |
+| `SortisFaucet` | [`0x954A8e01E67B91e4E11c50DEa7Ac296B47db8d12`](https://sepolia.etherscan.io/address/0x954A8e01E67B91e4E11c50DEa7Ac296B47db8d12) |
 
 Demo pool, one round every 5 minutes, so a reviewer arriving at a random moment is never far from a complete draw:
 
 | Contract | Address |
 |---|---|
-| `SortisPool` | [`0x2238975477e0F90B2084C5C64c61E41fFe7B8F97`](https://sepolia.etherscan.io/address/0x2238975477e0F90B2084C5C64c61E41fFe7B8F97) |
-| `SortisDraw` | [`0x30E3eF09C9Ec68bd228f4593382dFF3fe9521E62`](https://sepolia.etherscan.io/address/0x30E3eF09C9Ec68bd228f4593382dFF3fe9521E62) |
-| `MockYieldSource` | [`0x7C2dF99d75a14c224d8AD7d24311334f16B92237`](https://sepolia.etherscan.io/address/0x7C2dF99d75a14c224d8AD7d24311334f16B92237) |
+| `SortisPool` | [`0x80c810c6de816C06DB10ee8d385D36AE485c8B4C`](https://sepolia.etherscan.io/address/0x80c810c6de816C06DB10ee8d385D36AE485c8B4C) |
+| `SortisDraw` | [`0x9bF662CAA9F9d5b0d50F0Ee415032558f9118F23`](https://sepolia.etherscan.io/address/0x9bF662CAA9F9d5b0d50F0Ee415032558f9118F23) |
+| `MockYieldSource` | [`0x976843b13198E297582577205E46Df9FA931b0Fd`](https://sepolia.etherscan.io/address/0x976843b13198E297582577205E46Df9FA931b0Fd) |
 
 Standard pool, one round every 24 hours, the round length a real savings product would use:
 
 | Contract | Address |
 |---|---|
-| `SortisPool` | [`0xCCE648f68874F3bf15Bc713a02b8264a2fD0f990`](https://sepolia.etherscan.io/address/0xCCE648f68874F3bf15Bc713a02b8264a2fD0f990) |
-| `SortisDraw` | [`0x31d445D5A59f74F139926Ccbc56C18ed506ed39e`](https://sepolia.etherscan.io/address/0x31d445D5A59f74F139926Ccbc56C18ed506ed39e) |
-| `MockYieldSource` | [`0x41E2a43f1Bff35b230686B2B58121eA1CDfb1048`](https://sepolia.etherscan.io/address/0x41E2a43f1Bff35b230686B2B58121eA1CDfb1048) |
+| `SortisPool` | [`0x536B45dfe74bEd50E3FEF421f67c349B4Be3F77c`](https://sepolia.etherscan.io/address/0x536B45dfe74bEd50E3FEF421f67c349B4Be3F77c) |
+| `SortisDraw` | [`0xDD07755F8027d27C2cbC8F5b6512844118B8D87e`](https://sepolia.etherscan.io/address/0xDD07755F8027d27C2cbC8F5b6512844118B8D87e) |
+| `MockYieldSource` | [`0x4E614fF0e76c7E9b4f2BD56dE5051d24cad3Cd24`](https://sepolia.etherscan.io/address/0x4E614fF0e76c7E9b4f2BD56dE5051d24cad3Cd24) |
 
 `MorphoYieldSource` is intentionally not deployed. It is the documented mainnet path, and a contract that reverts on every call would only be noise on a block explorer.
 

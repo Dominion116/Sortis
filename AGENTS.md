@@ -27,8 +27,8 @@ Wallet signatures still go through wagmi.
 `SortisPool.claim` must `FHE.allowTransient(amount, asset)` before
 `confidentialTransfer`, the same grant `withdraw` already makes. Without it
 the token cannot compute over the encrypted amount and the claim reverts
-inside ERC-7984 `_update`. The live Sepolia pools were deployed without that
-line; a new deploy is required for claims to succeed onchain.
+inside ERC-7984 `_update`. The 28 August 2026 Sepolia redeploy includes
+this grant.
 
 AppKit is initialized lazily from the connect control rather than at provider
 module load. This prevents WalletConnect remote configuration requests from
@@ -272,10 +272,10 @@ Live addresses (chainId 11155111, deployer/keeper
 
 | | address |
 |---|---|
-| cUSDT | `0x0E8c04AFd8d4483b0925aF1b4E5a88dde28F0Ff0` |
-| faucet | `0x5550e92d4C252763797948Fb751c7116809F7cdb` |
-| demo pool / draw / yield | `0x223897…8F97` / `0x30E3eF…1E62` / `0x7C2dF9…2237` |
-| standard pool / draw / yield | `0xCCE648…f990` / `0x31d445…d39e` / `0x41E2a4…1048` |
+| cUSDT | `0xd82C37256145dd6554d9090bF679a6c18e0680d1` |
+| faucet | `0x954A8e01E67B91e4E11c50DEa7Ac296B47db8d12` |
+| demo pool / draw / yield | `0x80c810…8B4C` / `0x9bF662…8F23` / `0x976843…b0Fd` |
+| standard pool / draw / yield | `0x536B45…F77c` / `0xDD0775…D87e` / `0x4E614f…Cd24` |
 
 `packages/contracts/deployments/sepolia.json` is the canonical record. Read
 addresses from there or from the generated
