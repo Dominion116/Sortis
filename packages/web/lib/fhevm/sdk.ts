@@ -41,9 +41,11 @@ function assertBrowser() {
  * Compile the WASM and build an instance bound to the injected wallet.
  *
  * `SepoliaConfig` carries the Zama Protocol contract addresses (ACL, KMS
- * verifier, relayer URL) for Sepolia. Only `network` is ours to supply, and
- * `window.ethereum` is the right value: the SDK uses it to read the public key
- * material from chain, not to sign, so it does not need wagmi's transport.
+ * verifier, relayer URL) for Sepolia. Host-chain reads use a plain RPC URL.
+ * Some injected wallet RPCs reject the protocol's `eip712Domain()` calls even
+ * though the same calls succeed on Sepolia, which makes the SDK appear broken
+ * before encryption has started. Wallets remain responsible for signing
+ * through wagmi; the SDK only needs a reliable read transport here.
  */
 async function bootstrap(): Promise<FhevmInstance> {
   assertBrowser();
@@ -52,23 +54,13 @@ async function bootstrap(): Promise<FhevmInstance> {
 
   await initSDK();
 
-  // `window.ethereum` is already declared by another dependency in this graph
-  // (as `Record<string, unknown>`), so we read it through a local cast rather
-  // than re-declaring the global, which would be a duplicate-declaration
-  // error. The SDK's own `Eip1193Provider` type is not exported either.
-  const ethereum = (window as unknown as { ethereum?: unknown }).ethereum;
-  if (!ethereum) {
-    throw new Error(
-      "No injected Ethereum provider found. Connect a wallet before the " +
-        "encryption SDK can read the network's public key.",
-    );
-  }
+  const rpcUrl =
+    process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL ||
+    "https://ethereum-sepolia-rpc.publicnode.com";
 
   return createInstance({
     ...SepoliaConfig,
-    // The SDK's provider type is not exported, so this cast is the boundary
-    // between our structural type and theirs.
-    network: ethereum as never,
+    network: rpcUrl,
   });
 }
 

@@ -34,11 +34,11 @@ type Loaded =
  * `next/dynamic` with `ssr: false`, so nothing in this file, or in the SDK it
  * loads, is evaluated during the server pass.
  *
- * The bootstrap is gated on `isConnected`: the SDK needs an injected provider
- * to read the network's public key, so starting it before a wallet exists just
- * produces a guaranteed failure. Non-ciphertext reads (pool sizes, countdowns,
- * the faucet cooldown) go through wagmi and never touch this context, which is
- * what keeps them off the WASM's critical path.
+ * The bootstrap is gated on `isConnected` because encryption and private
+ * decryption are wallet workflows. Host-chain reads use the configured
+ * Sepolia RPC rather than the injected wallet RPC. Non-ciphertext reads (pool
+ * sizes, countdowns, the faucet cooldown) go through wagmi and never touch
+ * this context, which keeps them off the WASM's critical path.
  */
 export function FhevmProvider({ children }: { children: React.ReactNode }) {
   const { isConnected } = useAccount();
