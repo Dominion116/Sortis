@@ -38,7 +38,7 @@ function assertBrowser() {
 }
 
 /**
- * Compile the WASM and build an instance bound to the injected wallet.
+ * Compile the WASM and build an instance for the Sepolia host chain.
  *
  * `SepoliaConfig` carries the Zama Protocol contract addresses (ACL, KMS
  * verifier, relayer URL) for Sepolia. Host-chain reads use a plain RPC URL.
