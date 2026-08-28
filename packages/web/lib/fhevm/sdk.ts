@@ -22,6 +22,8 @@
  */
 import type { FhevmInstance } from "@zama-fhe/relayer-sdk/web";
 
+import { createSepoliaReadProvider } from "@/lib/fhevm/host-rpc";
+
 export type { FhevmInstance };
 
 /** Memoised bootstrap. One WASM compile and one instance per page load. */
@@ -41,11 +43,12 @@ function assertBrowser() {
  * Compile the WASM and build an instance for the Sepolia host chain.
  *
  * `SepoliaConfig` carries the Zama Protocol contract addresses (ACL, KMS
- * verifier, relayer URL) for Sepolia. Host-chain reads use a plain RPC URL.
- * Some injected wallet RPCs reject the protocol's `eip712Domain()` calls even
- * though the same calls succeed on Sepolia, which makes the SDK appear broken
- * before encryption has started. Wallets remain responsible for signing
- * through wagmi; the SDK only needs a reliable read transport here.
+ * verifier, relayer URL) for Sepolia. Host-chain reads go through a
+ * same-origin `/api/rpc` proxy rather than `window.ethereum` or a public RPC
+ * hostname. Injected wallets intercept some public JSON-RPC hosts and reject
+ * the InputVerifier `eip712Domain()` call, which makes every encrypted screen
+ * fail during SDK setup even though the call is valid on Sepolia. Wallets
+ * remain responsible for signing through wagmi.
  */
 async function bootstrap(): Promise<FhevmInstance> {
   assertBrowser();
@@ -54,13 +57,11 @@ async function bootstrap(): Promise<FhevmInstance> {
 
   await initSDK();
 
-  const rpcUrl =
-    process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL ||
-    "https://ethereum-sepolia-rpc.publicnode.com";
-
   return createInstance({
     ...SepoliaConfig,
-    network: rpcUrl,
+    // The SDK's Eip1193Provider type is not exported. This object is a
+    // structural match: it only implements `request`.
+    network: createSepoliaReadProvider() as never,
   });
 }
 

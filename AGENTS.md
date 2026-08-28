@@ -15,11 +15,14 @@ walkthrough recording, and bounty-form publication.
 
 ### Post-Phase 13 maintenance
 
-FHEVM browser bootstrap uses `NEXT_PUBLIC_SEPOLIA_RPC_URL` (with the public
-Sepolia fallback) for its host-chain reads, not `window.ethereum`. Some
-injected wallet RPCs reject the Zama InputVerifier `eip712Domain()` call and
-make every encrypted screen fail during SDK setup, despite the protocol call
-being valid on Sepolia. Wallet signatures still go through wagmi.
+FHEVM browser bootstrap reads the host chain through a same-origin
+`/api/rpc` proxy (allowlisted `eth_call` / `eth_chainId` and similar), not
+`window.ethereum` and not a public RPC hostname from the browser. Injected
+wallets intercept some well-known Sepolia RPC hosts and reject the Zama
+InputVerifier `eip712Domain()` call, which makes every encrypted screen fail
+during SDK setup even though the same call succeeds on Sepolia. The proxy
+forwards to `NEXT_PUBLIC_SEPOLIA_RPC_URL` or the public Sepolia fallbacks.
+Wallet signatures still go through wagmi.
 
 AppKit is initialized lazily from the connect control rather than at provider
 module load. This prevents WalletConnect remote configuration requests from

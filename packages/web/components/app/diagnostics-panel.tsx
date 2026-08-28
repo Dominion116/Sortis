@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { ConnectButton } from "@/components/app/connect-button";
 import { useFhevm } from "@/components/providers/fhevm-provider";
 import { formatAddress, sepolia, SEPOLIA_CHAIN_ID } from "@/lib/contracts";
+import { formatFhevmError } from "@/lib/fhevm/host-rpc";
 import { isSupportedChain, walletConnectReady } from "@/lib/wagmi";
 
 type Tone = "ready" | "waiting" | "bad";
@@ -126,9 +127,9 @@ export function DiagnosticsPanel() {
             value={sdkStatus}
             detail={
               sdkError
-                ? sdkError.message
+                ? formatFhevmError(sdkError)
                 : sdkReady
-                  ? "WASM compiled and the instance is bound to the connected wallet."
+                  ? "WASM compiled and host-chain reads go through the Sepolia RPC proxy."
                   : "Loads once a wallet is connected. This is the check that matters most."
             }
           />

@@ -210,7 +210,7 @@ Vercel production-only variables:
 ```bash
 CRON_SECRET=                 # shared secret for /api/cron/keeper
 SORTIS_KEEPER_PRIVATE_KEY=   # Sepolia keeper hot key, never exposed to the browser
-NEXT_PUBLIC_SEPOLIA_RPC_URL= # optional RPC override
+NEXT_PUBLIC_SEPOLIA_RPC_URL= # optional RPC override for the keeper and /api/rpc proxy
 ZAMA_FHEVM_API_KEY=          # optional relayer authentication
 ```
 

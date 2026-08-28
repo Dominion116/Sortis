@@ -5,6 +5,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 import { useFhevm } from "@/components/providers/fhevm-provider";
 import { Button } from "@/components/ui/button";
+import { formatFhevmError } from "@/lib/fhevm/host-rpc";
 
 /**
  * Plain shimmer block. Sized by the caller so the skeleton occupies the same
@@ -82,7 +83,7 @@ export function EncryptedGate({
           The {label} library did not load.
         </p>
         <p className="font-sans text-xs leading-relaxed text-muted-foreground">
-          {error?.message ?? "Unknown error."}
+          {formatFhevmError(error)}
         </p>
         <Button size="sm" variant="outline" onClick={reload}>
           Try again
