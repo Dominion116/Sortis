@@ -222,6 +222,9 @@ contract SortisPool is ZamaEthereumConfig, Ownable, ReentrancyGuardTransient {
         _claimable[msg.sender] = FHE.sub(available, amount);
         FHE.allowThis(_claimable[msg.sender]);
         FHE.allow(_claimable[msg.sender], msg.sender);
+        // Same grant withdraw uses: the token must be allowed to compute over
+        // `amount` or `confidentialTransfer` reverts inside `_update`.
+        FHE.allowTransient(amount, asset);
         IERC7984(asset).confidentialTransfer(msg.sender, amount);
     }
 

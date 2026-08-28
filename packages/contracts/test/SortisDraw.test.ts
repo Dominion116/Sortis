@@ -114,6 +114,15 @@ describe("Phase 5 — SortisDraw", function () {
     return await fhevm.userDecryptEuint(FhevmType.euint64, handle, poolAddress, account);
   }
 
+  async function decryptToken(account: HardhatEthersSigner): Promise<bigint> {
+    return await fhevm.userDecryptEuint(
+      FhevmType.euint64,
+      await token.confidentialBalanceOf(account.address),
+      tokenAddress,
+      account,
+    );
+  }
+
   async function decryptActive(ticketId: number): Promise<boolean> {
     return await fhevm.debugger.decryptEbool((await pool.ticketAt(ticketId)).active);
   }
@@ -272,6 +281,34 @@ describe("Phase 5 — SortisDraw", function () {
       }
       expect(expectedWinner).to.be.greaterThanOrEqual(0);
       expect(claimables[expectedWinner]).to.equal(prize);
+    });
+
+    it("lets the winner privately claim the prize", async function () {
+      await seedYield();
+      await openAndClose([100_000n, 50_000n]);
+      await revealTotal();
+      await (await draw.connect(keeper).drawRandom()).wait();
+      await (await draw.connect(keeper).stepDraw(2)).wait();
+      await settleRound();
+
+      const prize = (await draw.roundAt(1n)).prizeAmount;
+      const aliceWon = await decryptClaimable(alice);
+      const bobWon = await decryptClaimable(bob);
+      expect(aliceWon + bobWon).to.equal(prize);
+
+      const winner = aliceWon === prize ? alice : bob;
+      const loser = winner.address === alice.address ? bob : alice;
+      const before = await decryptToken(winner);
+
+      const encrypted = await fhevm
+        .createEncryptedInput(poolAddress, winner.address)
+        .add64(prize)
+        .encrypt();
+      await (await pool.connect(winner).claim(encrypted.handles[0], encrypted.inputProof)).wait();
+
+      expect(await decryptClaimable(winner)).to.equal(0n);
+      expect(await decryptToken(winner)).to.equal(before + prize);
+      expect(await decryptClaimable(loser)).to.equal(0n);
     });
 
     it("writes a claimable handle for every swept owner, including losers", async function () {

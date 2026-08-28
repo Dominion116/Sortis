@@ -24,6 +24,12 @@ during SDK setup even though the same call succeeds on Sepolia. The proxy
 forwards to `NEXT_PUBLIC_SEPOLIA_RPC_URL` or the public Sepolia fallbacks.
 Wallet signatures still go through wagmi.
 
+`SortisPool.claim` must `FHE.allowTransient(amount, asset)` before
+`confidentialTransfer`, the same grant `withdraw` already makes. Without it
+the token cannot compute over the encrypted amount and the claim reverts
+inside ERC-7984 `_update`. The live Sepolia pools were deployed without that
+line; a new deploy is required for claims to succeed onchain.
+
 AppKit is initialized lazily from the connect control rather than at provider
 module load. This prevents WalletConnect remote configuration requests from
 running on public pages and surfacing transient relay failures as Next.js
