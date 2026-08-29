@@ -81,7 +81,7 @@ library ZamaConfig {
             CoprocessorConfig({
                 ACLAddress: 0x50157CFfD6bBFA2DECe204a89ec419c23ef5755D,
                 CoprocessorAddress: 0xe3a9105a3a932253A70F126eb1E3b589C643dD24,
-                KMSVerifierAddress: 0xbE0E383937d564D7FF0BC3b46c51f0bF8d5C311A
+                KMSVerifierAddress: 0x901F8942346f7AB3a01F6D7613119Bca447Bb030
             });
     }
 }

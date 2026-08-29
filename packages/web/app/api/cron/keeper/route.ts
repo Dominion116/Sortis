@@ -41,10 +41,13 @@ function relayerInstance(rpcUrl: string) {
  * invocation as the transaction that creates the boundary. That is what keeps an
  * archive node out of the requirements.
  *
- * Any failure is swallowed on purpose: recording history must never stop a round
- * from advancing, because a stalled round is a far worse outcome than a missing
- * snapshot. A missing `handle_before` makes that one round report as
- * indeterminate on `/app/prizes` and nothing else.
+ * A failure never propagates: recording history must not stop a round from
+ * advancing, because a stalled round is a far worse outcome than a missing
+ * snapshot. It is, however, *reported*. The original version returned 0 on error
+ * and swallowed the reason entirely, which meant a round showing up as
+ * indeterminate on `/app/prizes` gave no way to find out why. The reason now
+ * travels back in the keeper's JSON response, so it lands in the scheduler's
+ * execution log.
  */
 async function captureSnapshots(
   client: PublicClient,
@@ -52,10 +55,12 @@ async function captureSnapshots(
   roundId: bigint,
   frozenTicketCount: bigint,
   phase: "before" | "after",
-): Promise<number> {
+): Promise<{ captured: number; error?: string }> {
   try {
     const participants = await frozenParticipants(client, poolId, frozenTicketCount);
-    if (participants.length === 0) return 0;
+    if (participants.length === 0) {
+      return { captured: 0, error: "no eligible participants to snapshot" };
+    }
 
     const handles = await readClaimableHandles(client, poolId, participants);
     if (phase === "before") {
@@ -63,9 +68,12 @@ async function captureSnapshots(
     } else {
       await recordHandlesAfter(poolId, roundId, handles);
     }
-    return handles.length;
-  } catch {
-    return 0;
+    return { captured: handles.length };
+  } catch (error) {
+    return {
+      captured: 0,
+      error: error instanceof Error ? error.message.split("\n")[0] : String(error),
+    };
   }
 }
 
@@ -99,17 +107,28 @@ async function advance(poolId: (typeof poolIds)[number]) {
     // credit anybody. Reading it here means `frozenTicketCount` is already set,
     // so the eligible set does not have to be inferred.
     const closed = await publicClient.readContract({ address: draw, abi: sortisDrawAbi, functionName: "roundAt", args: [roundId] });
-    const captured = await captureSnapshots(publicClient, poolId, roundId, closed.frozenTicketCount, "before");
-    await upsertRound({
+    const snapshot = await captureSnapshots(publicClient, poolId, roundId, closed.frozenTicketCount, "before");
+    const upsertError = await upsertRound({
       poolId,
       roundId,
       state: Number(closed.state),
       frozenTicketCount: closed.frozenTicketCount,
       prizeAmount: closed.prizeAmount,
       closedAtBlock: receipt.blockNumber,
-    }).catch(() => {});
+    }).then(
+      () => undefined,
+      (error: unknown) => (error instanceof Error ? error.message.split("\n")[0] : String(error)),
+    );
 
-    return { poolId, action: "closeRound", roundId: roundId.toString(), captured, hash };
+    return {
+      poolId,
+      action: "closeRound",
+      roundId: roundId.toString(),
+      captured: snapshot.captured,
+      snapshotError: snapshot.error,
+      upsertError,
+      hash,
+    };
   }
   if (state === 2) {
     if (round.revealedTotal > 0n) {
@@ -160,7 +179,7 @@ async function advance(poolId: (typeof poolIds)[number]) {
     // the window's transactions. If one is there, the delta for this round is
     // uninterpretable and the round is flagged so the UI says so.
     const settledRound = await publicClient.readContract({ address: draw, abi: sortisDrawAbi, functionName: "roundAt", args: [roundId] });
-    const captured = await captureSnapshots(publicClient, poolId, roundId, settledRound.frozenTicketCount, "after");
+    const snapshot = await captureSnapshots(publicClient, poolId, roundId, settledRound.frozenTicketCount, "after");
 
     // The scan window is the recorded sweep span, from the first `stepDraw`
     // block to this settlement block. If no span was recorded (no database, or
@@ -172,7 +191,7 @@ async function advance(poolId: (typeof poolIds)[number]) {
       ? await claimInterleaved(publicClient, poolId, tracked.sweepFirstBlock, receipt.blockNumber).catch(() => false)
       : false;
 
-    await upsertRound({
+    const upsertError = await upsertRound({
       poolId,
       roundId,
       state: Number(settledRound.state),
@@ -183,9 +202,22 @@ async function advance(poolId: (typeof poolIds)[number]) {
       settled: winnerCount === 1n,
       rolledOver: winnerCount === 0n,
       deltaUnreliable: unreliable,
-    }).catch(() => {});
+    }).then(
+      () => undefined,
+      (error: unknown) => (error instanceof Error ? error.message.split("\n")[0] : String(error)),
+    );
 
-    return { poolId, action: "settle", roundId: roundId.toString(), winnerCount: winnerCount.toString(), captured, deltaUnreliable: unreliable, hash };
+    return {
+      poolId,
+      action: "settle",
+      roundId: roundId.toString(),
+      winnerCount: winnerCount.toString(),
+      captured: snapshot.captured,
+      snapshotError: snapshot.error,
+      upsertError,
+      deltaUnreliable: unreliable,
+      hash,
+    };
   }
   return { poolId, action: "idle", roundId: roundId.toString(), state };
 }
