@@ -5,8 +5,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run dev --workspace=web",
-    "build": "npm run build --workspace=web",
+    "dev": "node init && npm run dev --workspace=web",
+    "build": "node init && npm run build --workspace=web",
     "lint": "npm run lint --workspace=web",
     "typecheck": "npm run typecheck --workspace=web",
     "contracts:compile": "npm run compile --workspace=contracts",
@@ -17,7 +17,8 @@
     "contracts:coverage": "npm run coverage --workspace=contracts",
     "contracts:deploy:sepolia": "npm run deploy:sepolia --workspace=contracts",
     "contracts:verify:sepolia": "npm run verify:sepolia --workspace=contracts",
-    "contracts:smoke:sepolia": "npm run smoke:sepolia --workspace=contracts"
+    "contracts:smoke:sepolia": "npm run smoke:sepolia --workspace=contracts",
+    "contracts:revive:sepolia": "npm run revive:sepolia --workspace=contracts"
   },
   "overrides": {
     "@wagmi/connectors": "6.2.0",

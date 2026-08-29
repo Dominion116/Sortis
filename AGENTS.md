@@ -760,8 +760,58 @@ The indexer's `DEPLOYMENT_BLOCK` is 11,587,000, just below the verified deployme
 block 11,587,343 (found by binary-searching block timestamps against the
 `deployedAt` in `deployments/sepolia.json`, then confirming `eth_getCode` on the
 demo draw contract flips from empty to non-empty there). Update it if
-`deploy:sepolia` is ever re-run. Nothing here has been exercised against a live
-Neon database yet, only typechecked.
+`deploy:sepolia` is ever re-run.
+
+### Live verification and the permanent-rollover trap (post-backend)
+
+The backend was confirmed working against production
+(`https://sortisonzama.vercel.app`) with `DATABASE_URL` set and both cron jobs
+firing from cron-job.org at two-minute intervals. `/api/rounds/50` and
+`/api/rounds/51` return full six-event trails, `/api/draws/demo/history` lists
+settled rounds, and `/api/prizes/<address>` returns `indexed: true`. Keeper
+executions run 2.85s and the indexer 10.07s, so the Vercel function timeout is not
+a constraint and `maxDuration` was not needed.
+
+**The keeper cadence fix worked and is verified.** Demo round 50 had been stuck at
+`AwaitingTotal` for 8.9 hours under the daily cron. It cleared within minutes of
+the per-minute schedule going live, and the pool advanced to round 52.
+
+**Every demo round rolls over, and this is the trap to understand.** Round 50 drew
+random 964,392 against total 1,000,000; round 51 drew 335,186. Both fall inside
+`[0, total)`, so the sweep should have found a winner. It did not, because the
+demo pool's single ticket had been withdrawn and its encrypted `active` flag is
+false.
+
+This is the documented rollover path, not a bug, but the consequence in a nearly
+empty pool is severe and non-obvious: cumulatives are never rebuilt on withdrawal,
+so a voided ticket keeps its slice of the number line permanently. With exactly
+one withdrawn ticket, that slice is the entire line, so *every* future round rolls
+over and no winner is ever drawn. A reviewer sees rounds completing correctly and
+nobody winning.
+
+Depositing again only partially fixes it. A new ticket is appended *above* the
+dead range, so the dead range's share of the new total decides how often rounds
+still roll over. A 1 cUSDT dead range plus a 1 cUSDT deposit is still a coin flip.
+`scripts/revive-demo-pool.ts` (`npm run contracts:revive:sepolia`, `REVIVE_AMOUNT`
+in whole cUSDT, default 25) mints and deposits enough to shrink the dead range to a
+small fraction. It uses the owner mint path rather than the faucet, so it does not
+wait out the hourly cooldown. Do not diagnose "no winners" as a draw-engine bug
+before checking the ticket list for voided tickets.
+
+**Snapshot failures are now reported.** `captureSnapshots` still never propagates
+an error, because a stalled round is worse than a missing snapshot, but it returns
+`{ captured, error }` and the keeper surfaces `snapshotError` and `upsertError` in
+its JSON response, so a failure appears in the scheduler's execution log. The
+original version returned 0 and discarded the reason, which left rounds reporting
+as indeterminate on `/app/prizes` with no way to find out why. Do not restore the
+bare `catch {}`.
+
+Still unverified: a round with `determinable: true`. Rounds 51 and 52 both report
+"not fully recorded", which is expected for 52 (mid-round, no `handle_after` yet)
+but not yet explained for 51. The new error reporting is what will answer it on the
+next settled round. A determinable round needs an *active* ticket, so this is
+blocked behind the revive step.
+
 
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
@@ -790,4 +840,5 @@ npm run coverage                # Phase 6 published number
 npm run deploy:sepolia          # deploys a NEW set, rewrites addresses
 npm run verify:sepolia          # idempotent, safe to re-run
 npm run smoke:sepolia           # SMOKE_SKIP_FAUCET=1 to skip the drip leg
+npm run revive:sepolia          # mint + deposit into the demo pool; REVIVE_AMOUNT=25
 ```
