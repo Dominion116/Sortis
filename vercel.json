@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/keeper",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/indexer",
+      "schedule": "0 0 * * *"
     }
   ]
 }

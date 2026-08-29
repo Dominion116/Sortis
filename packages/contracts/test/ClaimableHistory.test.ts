@@ -28,8 +28,15 @@ import type { HardhatEthersSigner } from "@nomicfoundation/hardhat-ethers/signer
 describe("Claimable handle history", function () {
   const DEMO_DURATION = 300n;
   const RATE_BPS = 2_000n;
-  const MINT = 1_000_000n;
-  const YIELD_PRINCIPAL = 10_000_000n;
+  // Deliberately unusual amounts. FHEVM handles are deterministic hashes of the
+  // operation and its operands, so minting a round number here would produce the
+  // SAME handle as an identical mint in another test file, and the grant this
+  // suite makes to `bob` would then let him decrypt that handle in the other
+  // suite. `ConfidentialUSDT.test.ts` asserts a third party CANNOT read someone
+  // else's balance, and it failed for exactly that reason when this file used
+  // 1_000_000n. Keep these values distinct from the other suites'.
+  const MINT = 812_345n;
+  const YIELD_PRINCIPAL = 9_876_543n;
 
   let deployer: HardhatEthersSigner;
   let keeper: HardhatEthersSigner;

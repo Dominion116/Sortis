@@ -119,8 +119,8 @@ Sepolia has no real yield. Rather than fake it silently, the yield source is a p
 | Icons | lucide-react | Consistent line weight, no licensing questions |
 | Wallet layer | Reown AppKit over wagmi v2 and viem | Broad wallet coverage, one connect surface |
 | Encryption client | Zama Relayer SDK | Browser-side input encryption and the EIP-712 user decryption flow |
-| Data | viem log reads with TanStack Query | No indexer to run or pay for — Sepolia log volume is trivial |
-| Keeper | Vercel Cron calling a route handler | Triggers rounds and steps the draw sweep on a schedule |
+| Data | Indexed Postgres with a viem log fallback | Complete round history without an archive node; the app still runs with no database configured |
+| Keeper | Route handler driven by an external per-minute scheduler | Triggers rounds, steps the draw sweep, and records round-boundary ciphertext handles |
 | Hosting | Vercel | Preview deployments per branch, stable production URL for reviewers |
 
 ### Two integration traps
@@ -208,11 +208,53 @@ NEXT_PUBLIC_RELAYER_URL=
 Vercel production-only variables:
 
 ```bash
-CRON_SECRET=                 # shared secret for /api/cron/keeper
+CRON_SECRET=                 # shared secret for /api/cron/keeper and /api/cron/indexer
 SORTIS_KEEPER_PRIVATE_KEY=   # Sepolia keeper hot key, never exposed to the browser
 NEXT_PUBLIC_SEPOLIA_RPC_URL= # optional RPC override for the keeper and /api/rpc proxy
 ZAMA_FHEVM_API_KEY=          # optional relayer authentication
+DATABASE_URL=                # optional serverless Postgres for round history
 ```
+
+### Scheduling the keeper
+
+`vercel.json` registers a daily cron for both `/api/cron/keeper` and
+`/api/cron/indexer`, which is the most Vercel Hobby allows. That is a backstop,
+not a working schedule: the demo pool runs 300-second rounds and a single round
+needs several sequential keeper invocations (close, reveal total, draw random,
+sweep batches, settle), so a daily tick would take days to settle one round.
+
+Point an external scheduler at both routes once a minute:
+
+```
+GET https://<deployment>/api/cron/keeper
+GET https://<deployment>/api/cron/indexer
+Authorization: Bearer $CRON_SECRET
+```
+
+Both are idempotent. The keeper performs at most one state transition per call
+and the indexer advances its cursor only after a successful write, so retries and
+overlapping calls are safe.
+
+### Round history and the privacy boundary
+
+`DATABASE_URL` is optional and the app degrades cleanly without it. When it is
+set, the keeper records each participant's encrypted `_claimable` handle at both
+round boundaries and the indexer stores the public event trail. That makes two
+things possible: `/verify/[roundId]` covers every round since deployment instead
+of the latest 100,000 blocks, and a user can check whether a specific past round
+was won.
+
+The server never decrypts. It stores ciphertext handles, which are already
+readable from public pool storage and are inert without the owning address's
+EIP-712 authorisation. `/app/prizes` fetches the handle pair for a round,
+decrypts both in the browser under the user's own session, and subtracts. A
+contract test (`ClaimableHistory`) pins both halves of that: a superseded handle
+stays decryptable by its owner, and a non-owner cannot decrypt it.
+
+One case cannot be answered. `SortisPool.claim` emits no event, so the keeper
+detects an interleaved claim by scanning the sweep's block range for calls to the
+pool. When it finds one, the round is flagged and the UI says the result cannot be
+attributed rather than showing a difference it cannot stand behind.
 
 Contract addresses are not environment variables. `deploy:sepolia` writes them into `packages/web/lib/contracts/addresses.ts`, which is committed, so a checkout points at the live deployment with no configuration.
 
@@ -332,7 +374,8 @@ Participation is not a secret in a prize savings pool. Hiding the address would 
 ## Known limitations
 
 - **Simulated yield.** Sepolia has no real yield source; `MockYieldSource` is clearly labeled everywhere a prize figure appears.
-- **Centralized keeper.** The round keeper is a Vercel Cron job holding a hot key, stated openly as a testnet convenience. A production deployment would move round advancement to a permissionless, incentivized keeper.
+- **Centralized keeper.** The round keeper is a route handler holding a hot key, driven by an external scheduler, stated openly as a testnet convenience. A production deployment would move round advancement to a permissionless, incentivized keeper.
+- **Per-round results are inferred, not recorded.** `_claimable` is one running encrypted total, so "did I win round N" is computed from the encrypted balance either side of that round's sweep. A claim landing inside the sweep window makes the difference unattributable, and that case is reported as indeterminate rather than guessed at. A per-round encrypted credit mapping in the pool would make the contract answer directly, at the cost of a storage write and grant per ticket per sweep.
 - **Rollover on voided tickets.** A random draw landing inside a withdrawn ticket's range produces no winner for that round by design, not by bug.
 - **Single pool, single prize tier** for this submission — see [Open questions](docs/implementation-plan.md) for the tradeoffs considered.
 
