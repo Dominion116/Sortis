@@ -14,7 +14,28 @@ import { getDrawAddress, makePublicClient, poolIds, readDrawSnapshot, ROUND_STAT
 
 const publicClient = makePublicClient();
 
+/**
+ * Settled-round history for one pool.
+ *
+ * Tries the indexed API first, which covers every round since deployment. The
+ * `getLogs` fallback is bounded to the latest 100,000 blocks because public
+ * Sepolia RPCs reject wider ranges, so without the indexer the list is recent
+ * rather than complete.
+ */
 async function readHistory(poolId: PoolId) {
+  try {
+    const response = await fetch(`/api/draws/${poolId}/history`);
+    if (response.ok) {
+      const body = (await response.json()) as {
+        indexed: boolean;
+        rounds: { roundId: string; prize: string; tx: string }[];
+      };
+      if (body.indexed) return body.rounds;
+    }
+  } catch {
+    // Fall through to the log scan.
+  }
+
   const latest = await publicClient.getBlockNumber();
   const fromBlock = latest > 100_000n ? latest - 100_000n : 0n;
   const logs = await publicClient.getLogs({ address: getDrawAddress(poolId), fromBlock } as never);
