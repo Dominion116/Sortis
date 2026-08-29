@@ -9,6 +9,7 @@ import { ConnectButton } from "@/components/app/connect-button";
 import { EncryptedGate } from "@/components/app/encrypted-gate";
 import { useNetworkMismatch } from "@/components/app/network-guard";
 import { PrizeEnvelopeSkeleton } from "@/components/app/skeletons";
+import { RoundHistoryCard } from "@/components/app/round-history-card";
 import { ContentFade } from "@/components/motion/page-transition";
 import { useFhevm } from "@/components/providers/fhevm-provider";
 import { Button } from "@/components/ui/button";
@@ -173,7 +174,8 @@ export function PrizesPanel() {
           <ConnectButton />
         </div>
       ) : (
-        <div className="mx-auto max-w-2xl rounded-xl border bg-card p-6 text-center sm:p-10">
+        <>
+          <div className="mx-auto max-w-2xl rounded-xl border bg-card p-6 text-center sm:p-10">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border bg-background">
             <Gift className="h-6 w-6 text-brand" aria-hidden="true" />
           </div>
@@ -238,7 +240,10 @@ export function PrizesPanel() {
               View transaction
             </a>
           ) : null}
-        </div>
+          </div>
+
+          <RoundHistoryCard />
+        </>
       )}
     </section>
   );
