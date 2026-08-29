@@ -756,9 +756,12 @@ any more.
 
 Verified with 106 contract tests passing, web typecheck, ESLint, `next typegen`,
 and `git diff --check`. `next build` was not run locally, per the standing rule.
-The indexer's `DEPLOYMENT_BLOCK` is an estimate (9,100,000); if backfill misses
-early rounds, lower it. Nothing here has been exercised against a live Neon
-database yet, only typechecked.
+The indexer's `DEPLOYMENT_BLOCK` is 11,587,000, just below the verified deployment
+block 11,587,343 (found by binary-searching block timestamps against the
+`deployedAt` in `deployments/sepolia.json`, then confirming `eth_getCode` on the
+demo draw contract flips from empty to non-empty there). Update it if
+`deploy:sepolia` is ever re-run. Nothing here has been exercised against a live
+Neon database yet, only typechecked.
 
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.

@@ -24,8 +24,19 @@ export const dynamic = "force-dynamic";
  * advances after a successful write, so a retry re-reads at worst one chunk.
  */
 
-/** First block to index from. The deployment predates any round. */
-const DEPLOYMENT_BLOCK = 9_100_000n;
+/**
+ * First block to index from.
+ *
+ * The current Sepolia set was deployed at 2026-08-28T21:04:38Z, which resolves to
+ * block 11,587,343. Verified by binary-searching block timestamps and confirming
+ * `eth_getCode` on the demo draw contract is empty below it and non-empty at it.
+ *
+ * Do not lower this "to be safe": the backfill walks CHUNK blocks per invocation,
+ * so an earlier start costs proportionally more scheduler ticks before history is
+ * complete. If `deploy:sepolia` is ever re-run, update this to the new deployment
+ * block.
+ */
+const DEPLOYMENT_BLOCK = 11_587_000n;
 
 /** Public RPCs reject wide ranges, so walk in chunks. */
 const CHUNK = 9_000n;
