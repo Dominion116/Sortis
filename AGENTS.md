@@ -523,9 +523,9 @@ user's instruction, `next build` was not run locally.
 
 `/app/draws` reads both deployed Sepolia draw engines through viem and TanStack Query. It shows the current round countdown, explicit awaiting-oracle copy, live encrypted sweep cursor progress, prize/ticket metadata, and recent settled rounds decoded from `ErnieSettled` logs. Both pools reuse the canonical generated address module.
 
-`/api/cron/keeper` is a Node runtime route protected by `Authorization: Bearer $CRON_SECRET`. It advances each pool by at most one state transition per invocation (open, close, public-decrypt total, draw sweep batch, or public-decrypt and settle), making retries idempotent. It holds `SORTIS_KEEPER_PRIVATE_KEY`, uses Sepolia RPC, and obtains FHEVM 0.11 public-decryption proofs with `@zama-fhe/relayer-sdk/node`. `vercel.json` schedules it once per day for Vercel Hobby compatibility; minute-level progression requires Vercel Pro or an external scheduler.
+`/api/cron/keeper` is a Node runtime route protected by `Authorization: Bearer $CRON_SECRET`. It advances each pool by at most one state transition per invocation (open, close, public-decrypt total, draw sweep batch, or public-decrypt and settle), making retries idempotent. It holds `SORTIS_KEEPER_PRIVATE_KEY`, uses Sepolia RPC, and obtains FHEVM 0.11 public-decryption proofs with `@zama-fhe/relayer-sdk/node`. `vercel.json` schedules it once per day for Vercel Hobby compatibility; minute-level progression requires an external scheduler, which the post-Phase 13 backend section covers and which is a deployment dependency rather than an optimisation.
 
-Required Vercel environment variables: `CRON_SECRET`, `SORTIS_KEEPER_PRIVATE_KEY`, `NEXT_PUBLIC_SEPOLIA_RPC_URL` (optional fallback exists), and `ZAMA_FHEVM_API_KEY` when the relayer requires authentication. Event history is bounded to the latest 100,000 blocks for public RPC reliability; current state remains live without a database or indexer.
+Required Vercel environment variables: `CRON_SECRET`, `SORTIS_KEEPER_PRIVATE_KEY`, `NEXT_PUBLIC_SEPOLIA_RPC_URL` (optional fallback exists), and `ZAMA_FHEVM_API_KEY` when the relayer requires authentication. Event history was originally bounded to the latest 100,000 blocks for public RPC reliability; that bound is now a fallback behind the optional indexer.
 
 Verified with web typecheck, ESLint, and `next typegen`. `next build` was not run locally by instruction.
 
@@ -682,6 +682,83 @@ needs archive `eth_call` depth and silently misreports if a claim interleaves),
 or an on-demand encrypted range check (needs a redeploy plus a transaction and a
 second decrypt per check). Awaiting a decision; do not ship the delta approach
 without saying out loud that an interleaved claim breaks it.
+
+**Resolved in the backend pass below.** The delta approach shipped, but with the
+archive-node dependency designed out and the interleaved-claim case detected
+rather than ignored.
+
+### Backend: indexer, keeper cadence and per-round history (post-Phase 13)
+
+No contract change and no redeploy. Every published Sepolia address is still
+valid. `packages/web` gained `@neondatabase/serverless@1.1.0` (pinned exact).
+
+**The keeper schedule was the real bug.** `vercel.json` scheduled the keeper once
+per day while the demo pool runs 300-second rounds, and a round needs several
+sequential invocations (close, reveal total, draw random, sweep batches, settle).
+A daily tick therefore took days to settle one round, so every reviewer opening
+`/app/draws` saw a stalled round. The fix is deployment configuration, not code:
+point an external scheduler at `/api/cron/keeper` and `/api/cron/indexer` once a
+minute with `Authorization: Bearer $CRON_SECRET`. Both routes are idempotent. The
+daily Vercel crons remain as a backstop because Hobby allows no better. This is
+documented in the README and `docs/phase-13-checklist.md` as a deployment
+dependency, not an optimisation.
+
+**Handle snapshots are captured by the keeper, not reconstructed.** The keeper is
+already standing at both round boundaries, so `captureSnapshots` reads every
+eligible participant's `_claimable` handle at the chain head, in the same
+invocation as `closeRound` and as `settle`. This is what removes the archive-node
+requirement that made the frontend-only delta approach fragile. Snapshot failures
+are swallowed deliberately: a missing snapshot costs one round's history, whereas
+a keeper that aborts costs the whole demo.
+
+**`ClaimableHistory.test.ts` pins the assumption the feature rests on.** A
+superseded `_claimable` handle stays decryptable by its owner after the slot has
+moved on, three generations deep, and the difference between two generations
+equals the credited prize. A non-owner still cannot decrypt one, which is what
+makes serving handles from an unauthenticated endpoint safe. Do not delete these
+tests: if FHEVM ACL grants ever stop being permanent, the round-history feature
+breaks silently and this is the only thing that would say so.
+
+That test file uses `MINT = 812_345n` and `YIELD_PRINCIPAL = 9_876_543n`
+deliberately. FHEVM handles are deterministic hashes of the operation and its
+operands, so minting a round number here produced the *same handle* as an
+identical mint in `ConfidentialUSDT.test.ts`, and this suite's grant to `bob`
+then let him decrypt it there, failing that file's "a third party cannot read
+someone else's balance" assertion. Keep test amounts distinct across suites.
+
+**Interleaved claims are detected, not assumed away.** `SortisPool.claim` emits
+no event, so a claim inside a sweep window cannot be found from logs. The keeper
+scans the recorded sweep block range for calls carrying the `claim` selector
+(derived from the generated ABI, not hardcoded) and sets `delta_unreliable`. The
+UI then says the round cannot be attributed instead of showing a difference it
+cannot stand behind. This is the one case the backend cannot answer, and it is
+surfaced honestly in the README's limitations.
+
+**The database is optional and that is load bearing.** `getSql()` returns null
+without `DATABASE_URL`, every `lib/db/*` function no-ops or returns empty, the
+indexer reports `skipped`, `readVerification` falls back to bounded `getLogs`,
+and `RoundHistoryCard` returns null. A reviewer cloning the repo with no database
+gets the pre-backend behaviour, not a broken app. Do not add a `lib/db` caller
+that assumes a connection exists.
+
+**Two new public endpoints, deliberately unauthenticated.**
+`/api/rounds/[roundId]` and `/api/draws/[poolId]/history` serve only event data.
+`/api/prizes/[address]` serves ciphertext handles, which are inert without the
+owning address's EIP-712 authorisation and are already readable from pool
+storage. The safety of all three rests on the no-plaintext rule in
+`lib/db/client.ts`; nothing that is not already public onchain may be stored.
+`/api/cron/*` keep the bearer check, which matters more now that a third-party
+scheduler invokes them constantly.
+
+Also corrected: the README tech table said "No indexer to run or pay for" and the
+Phase 10 note said "without a database or indexer". Both were true and are not
+any more.
+
+Verified with 106 contract tests passing, web typecheck, ESLint, `next typegen`,
+and `git diff --check`. `next build` was not run locally, per the standing rule.
+The indexer's `DEPLOYMENT_BLOCK` is an estimate (9,100,000); if backfill misses
+early rounds, lower it. Nothing here has been exercised against a live Neon
+database yet, only typechecked.
 
 
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
