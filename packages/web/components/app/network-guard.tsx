@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { SEPOLIA_CHAIN_ID } from "@/lib/contracts";
 import { isSupportedChain } from "@/lib/wagmi";
+import { useAsyncAction } from "@/hooks/use-async-action";
 
 /**
  * True when a wallet is connected but pointed somewhere other than Sepolia.
@@ -34,7 +35,10 @@ export function useNetworkMismatch(): boolean {
  */
 export function NetworkGuard({ className }: { className?: string }) {
   const mismatch = useNetworkMismatch();
-  const { switchChain, isPending, error } = useSwitchChain();
+  const { switchChainAsync, error } = useSwitchChain();
+  // Local, not wagmi's `isPending`: that flag only flips once the connector
+  // request has started, so the button appeared to ignore the first click.
+  const { isPending, run } = useAsyncAction();
 
   if (!mismatch) return null;
 
@@ -59,8 +63,17 @@ export function NetworkGuard({ className }: { className?: string }) {
       </div>
       <Button
         size="sm"
-        onClick={() => switchChain({ chainId: SEPOLIA_CHAIN_ID })}
-        loading={isPending}
+        onClick={() =>
+          void run("switch", async () => {
+            try {
+              await switchChainAsync({ chainId: SEPOLIA_CHAIN_ID });
+            } catch {
+              // `error` above renders the reason. A wallet that does not know
+              // Sepolia rejects rather than silently doing nothing.
+            }
+          })
+        }
+        loading={isPending("switch")}
         className="shrink-0"
       >
         Switch to Sepolia

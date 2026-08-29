@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function FaucetPage() {
   return (
-    <section className="section-shell space-y-10">
+    <section className="space-y-8">
       <div className="space-y-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Sepolia testnet</p>
         <h1 className="max-w-3xl font-heading text-4xl tracking-tight md:text-5xl">Fund your first private deposit.</h1>

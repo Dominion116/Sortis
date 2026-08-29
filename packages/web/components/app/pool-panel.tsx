@@ -15,10 +15,13 @@ import {
 import { ConnectButton } from "@/components/app/connect-button";
 import { EncryptedGate } from "@/components/app/encrypted-gate";
 import { useNetworkMismatch } from "@/components/app/network-guard";
+import { TicketListSkeleton } from "@/components/app/skeletons";
+import { ContentFade } from "@/components/motion/page-transition";
 import { useFhevm } from "@/components/providers/fhevm-provider";
 import { CiphertextReveal } from "@/components/ciphertext-reveal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAsyncAction } from "@/hooks/use-async-action";
 import {
   confidentialUsdtAbi,
   explorerTxUrl,
@@ -70,12 +73,17 @@ export function PoolPanel() {
   const wrongNetwork = useNetworkMismatch();
   const { writeContractAsync } = useWriteContract();
 
+  // Keyed pending state, not one shared `busy` boolean. Depositing must not
+  // grey out the reveal control, and each ticket row needs its own spinner, so
+  // withdrawals key on the ticket id. `run` flips the key synchronously, which
+  // is what makes the button react on the click rather than a beat later.
+  const { isPending, run } = useAsyncAction();
+
   const [poolId, setPoolId] = React.useState<PoolId>("demo");
   const [amount, setAmount] = React.useState("");
   const [stage, setStage] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [successHash, setSuccessHash] = React.useState<`0x${string}` | null>(null);
-  const [busy, setBusy] = React.useState(false);
   const [balance, setBalance] = React.useState<bigint | null>(null);
   const [clearTickets, setClearTickets] = React.useState<Record<string, ClearTicket>>({});
   const [revealedScope, setRevealedScope] = React.useState<string | null>(null);
@@ -159,7 +167,6 @@ export function PoolPanel() {
 
   async function handleDeposit() {
     if (!address || !instance || !publicClient || !amount) return;
-    setBusy(true);
     setError(null);
     setSuccessHash(null);
     try {
@@ -201,14 +208,11 @@ export function PoolPanel() {
     } catch (caught) {
       setError(readableError(caught));
       setStage(null);
-    } finally {
-      setBusy(false);
     }
   }
 
   async function revealPrivateState(): Promise<void> {
     if (!address || !instance || !walletClient || isZeroHandle(balanceHandle)) return;
-    setBusy(true);
     setError(null);
     setStage("Requesting your private balance from the relayer...");
     try {
@@ -257,13 +261,10 @@ export function PoolPanel() {
     } catch (caught) {
       setError(readableError(caught));
       setStage(null);
-    } finally {
-      setBusy(false);
     }
   }
 
   async function handleWithdraw(ticketId: bigint) {
-    setBusy(true);
     setError(null);
     setSuccessHash(null);
     setStage("Confirm the withdrawal in your wallet.");
@@ -282,13 +283,11 @@ export function PoolPanel() {
     } catch (caught) {
       setError(readableError(caught));
       setStage(null);
-    } finally {
-      setBusy(false);
     }
   }
 
   return (
-    <section className="section-shell space-y-8">
+    <section className="space-y-8">
       <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
         <div className="space-y-3">
           <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">Your pool</p>
@@ -313,24 +312,52 @@ export function PoolPanel() {
               <div className="flex items-center gap-3"><ShieldCheck className="h-5 w-5 text-brand" aria-hidden="true" /><h2 className="text-xl font-medium">Deposit {TOKEN_SYMBOL}</h2></div>
               <div className="space-y-2"><label htmlFor="deposit-amount" className="text-sm font-medium">Amount</label><Input id="deposit-amount" inputMode="decimal" placeholder="10.00" value={amount} onChange={(event) => setAmount(event.target.value)} className="font-mono" /></div>
               <p className="text-xs leading-relaxed text-muted-foreground">The first deposit to this pool includes a one-time ERC-7984 operator approval. Your new ticket becomes eligible in round {nextRound?.toString() ?? "the next round"}.</p>
-              <EncryptedGate label="deposit encryption" fallback={<div className="h-10 w-40 animate-pulse rounded-md bg-muted" />}><Button onClick={handleDeposit} loading={busy} disabled={wrongNetwork || amount.length === 0}>Deposit securely</Button></EncryptedGate>
+              <EncryptedGate label="deposit encryption" fallback={<div className="h-10 w-40 animate-pulse rounded-md bg-muted" />}><Button onClick={() => void run("deposit", handleDeposit)} loading={isPending("deposit")} disabled={wrongNetwork || amount.length === 0}>Deposit securely</Button></EncryptedGate>
             </div>
 
             <div className="space-y-6 rounded-xl border bg-card p-5 sm:p-6">
               <div className="flex items-center gap-3"><Landmark className="h-5 w-5 text-brand" aria-hidden="true" /><h2 className="text-xl font-medium">Private balance</h2></div>
               {visibleBalance === null ? <CiphertextReveal value="•••••••• cUSDT" label="masked by default" interactive={false} /> : <CiphertextReveal key={`${pool}-${visibleBalance}`} value={`${formatTokenAmount(visibleBalance)} ${TOKEN_SYMBOL}`} label="your decrypted principal" />}
-              <EncryptedGate label="balance decryption"><Button variant="outline" onClick={revealPrivateState} loading={busy} disabled={wrongNetwork || isZeroHandle(balanceHandle)}><Eye className="mr-2 h-4 w-4" aria-hidden="true" />Reveal balance</Button></EncryptedGate>
+              <EncryptedGate label="balance decryption"><Button variant="outline" onClick={() => void run("reveal", revealPrivateState)} loading={isPending("reveal")} disabled={wrongNetwork || isZeroHandle(balanceHandle)}><Eye className="mr-2 h-4 w-4" aria-hidden="true" />Reveal balance</Button></EncryptedGate>
               <p className="text-xs leading-relaxed text-muted-foreground">The first reveal asks for one EIP-712 signature. Its temporary keypair remains only in memory, so later reveals in this browser session need no new signature.</p>
             </div>
           </div>
 
           <div className="space-y-5 rounded-xl border bg-card p-5 sm:p-6">
             <div><h2 className="text-xl font-medium">Your tickets</h2><p className="mt-1 text-sm text-muted-foreground">Withdrawal is available at any time. It returns that ticket&apos;s principal and forfeits its chance in the in-progress round.</p></div>
-            {ticketsQuery.isLoading ? <p className="text-sm text-muted-foreground">Loading ticket ownership...</p> : tickets.length === 0 ? <p className="text-sm text-muted-foreground">No tickets in this pool yet.</p> : (
-              <div className="divide-y">{tickets.map((ticket) => {
-                const clear = visibleTickets[ticket.id.toString()];
-                return <div key={ticket.id.toString()} className="flex flex-col justify-between gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center"><div><p className="font-mono text-sm">Ticket #{ticket.id.toString()}</p><p className="mt-1 text-xs text-muted-foreground">Round {ticket.roundId.toString()} · {clear ? `${formatTokenAmount(clear.amount)} ${TOKEN_SYMBOL} · ${clear.active ? "active" : "withdrawn"}` : "reveal balance to view private status"}</p></div>{clear?.active ? (confirmTicket === ticket.id ? <div className="flex flex-wrap items-center gap-2"><span className="max-w-xs text-xs text-muted-foreground">This permanently forfeits the ticket from the current draw.</span><Button size="sm" variant="destructive" onClick={() => handleWithdraw(ticket.id)} loading={busy}>Confirm withdrawal</Button><Button size="sm" variant="ghost" onClick={() => setConfirmTicket(null)} disabled={busy}>Cancel</Button></div> : <Button size="sm" variant="outline" onClick={() => setConfirmTicket(ticket.id)}>Withdraw ticket</Button>) : null}</div>;
-              })}</div>
+            {ticketsQuery.isLoading ? (
+              <TicketListSkeleton />
+            ) : tickets.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No tickets in this pool yet.</p>
+            ) : (
+              <ContentFade className="divide-y">
+                {tickets.map((ticket) => {
+                  const clear = visibleTickets[ticket.id.toString()];
+                  const withdrawKey = `withdraw:${ticket.id.toString()}`;
+                  const withdrawing = isPending(withdrawKey);
+                  return (
+                    <div key={ticket.id.toString()} className="flex flex-col justify-between gap-4 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center">
+                      <div>
+                        <p className="font-mono text-sm">Ticket #{ticket.id.toString()}</p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Round {ticket.roundId.toString()} · {clear ? `${formatTokenAmount(clear.amount)} ${TOKEN_SYMBOL} · ${clear.active ? "active" : "withdrawn"}` : "reveal balance to view private status"}
+                        </p>
+                      </div>
+                      {clear?.active ? (
+                        confirmTicket === ticket.id ? (
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="max-w-xs text-xs text-muted-foreground">This permanently forfeits the ticket from the current draw.</span>
+                            <Button size="sm" variant="destructive" onClick={() => void run(withdrawKey, () => handleWithdraw(ticket.id))} loading={withdrawing}>Confirm withdrawal</Button>
+                            <Button size="sm" variant="ghost" onClick={() => setConfirmTicket(null)} disabled={withdrawing}>Cancel</Button>
+                          </div>
+                        ) : (
+                          <Button size="sm" variant="outline" onClick={() => setConfirmTicket(ticket.id)} disabled={withdrawing}>Withdraw ticket</Button>
+                        )
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </ContentFade>
             )}
           </div>
         </>

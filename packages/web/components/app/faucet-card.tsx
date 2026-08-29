@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ConnectButton } from "@/components/app/connect-button";
 import { Skeleton } from "@/components/app/encrypted-gate";
 import { useNetworkMismatch } from "@/components/app/network-guard";
+import { useAsyncAction } from "@/hooks/use-async-action";
 import {
   explorerTxUrl,
   formatTokenAmount,
@@ -84,7 +85,8 @@ export function FaucetCard() {
     query: { enabled: Boolean(faucet && address) },
   });
 
-  const { writeContract, data: hash, isPending: signing, error: writeError, reset } = useWriteContract();
+  const { writeContractAsync, data: hash, error: writeError, reset } = useWriteContract();
+  const { isPending: isActionPending, run } = useAsyncAction();
 
   const {
     isLoading: confirming,
@@ -99,19 +101,30 @@ export function FaucetCard() {
 
   const secondsLeft = readyAt !== undefined ? Number(readyAt) - now : 0;
   const onCooldown = secondsLeft > 0;
+  // `signing` comes from this component, not from wagmi's `isPending`, because
+  // wagmi only flips that once the connector request has started, which is
+  // visibly after the click. `run` sets it synchronously instead.
+  const signing = isActionPending("drip");
   const busy = signing || confirming;
   const error = writeError ?? receiptError;
 
   const handleDrip = React.useCallback(() => {
     if (!faucet) return;
-    reset();
-    writeContract({
-      address: faucet,
-      abi: sortisFaucetAbi,
-      functionName: "drip",
-      chainId: SEPOLIA_CHAIN_ID,
+    void run("drip", async () => {
+      reset();
+      try {
+        await writeContractAsync({
+          address: faucet,
+          abi: sortisFaucetAbi,
+          functionName: "drip",
+          chainId: SEPOLIA_CHAIN_ID,
+        });
+      } catch {
+        // `writeError` already carries this for the message below. Swallowing
+        // the rejection here only stops it becoming an unhandled rejection.
+      }
     });
-  }, [faucet, writeContract, reset]);
+  }, [faucet, writeContractAsync, reset, run]);
 
   if (!faucet) {
     return (

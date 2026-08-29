@@ -20,7 +20,7 @@ export const metadata: Metadata = {
  */
 export default function DiagnosticsPage() {
   return (
-    <section className="section-shell max-w-3xl space-y-8">
+    <section className="space-y-8">
       <div className="space-y-3">
         <p className="font-sans text-xs font-semibold tracking-wide text-muted-foreground uppercase">
           Internal

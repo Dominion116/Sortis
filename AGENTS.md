@@ -624,6 +624,66 @@ while a destination streams. Keep navbar transition feedback in the shared
 navigation component, and preserve the reduced-motion behavior in both the
 template and loading UI.
 
+### App shell, pending state and skeleton maintenance (post-Phase 13)
+
+Four changes, all in `packages/web`. No contract change, no redeploy.
+
+**One container for `/app` routes.** `globals.css` gains `.app-shell` and
+`.app-stack`, applied once in `app/(app)/layout.tsx` around both the
+`NetworkGuard` and `children`. App pages previously mixed `.container` (from the
+layout) with per-page `.section-shell`, which resolve to different mobile
+gutters, so the banner and the content below it did not line up. `section-shell`
+and the page-level `max-w-3xl` are removed from every app page. Do not add
+`.section-shell`, `.container`, or a page-level `max-w-*` to a route under
+`(app)`; that is the drift this replaced. Marketing routes keep
+`.section-shell`, and `RouteLoading` takes a `variant` prop for that reason: the
+app variant renders no container because the layout already supplies one.
+
+**Buttons disable on the click, not a beat later.** `hooks/use-async-action.ts`
+owns keyed pending state and sets a key synchronously before the handler's first
+`await`. Deriving a spinner from wagmi's `isPending` was the actual lag: that
+flag only flips once the connector request has started. `faucet-card.tsx` and
+`network-guard.tsx` therefore moved to `writeContractAsync` /
+`switchChainAsync`, with the rejection caught locally because `writeError` and
+`error` already render the reason. `pool-panel.tsx` and `prizes-panel.tsx` had
+the opposite problem: one shared `busy` boolean, so revealing greyed out
+depositing. They now key per action, and withdrawals key on
+`withdraw:<ticketId>` so each ticket row has its own spinner. The ticket row's
+own "Withdraw ticket" trigger previously had no loading state at all. Do not
+reintroduce a single panel-wide `busy` flag.
+
+**Real panel skeletons.** `components/app/skeletons.tsx` composes the existing
+`Skeleton` primitive from `encrypted-gate.tsx` (the primitive stays there) into
+`HeadingSkeleton`, `StatSkeleton`, `DrawCardSkeleton`, `TicketListSkeleton`, and
+`PrizeEnvelopeSkeleton`. `loading.tsx` only covers the route-streaming wait; the
+real wait on every app screen is an RPC read inside a client component, which is
+why text placeholders like `"..."` and `"Loading ticket ownership..."` were what
+users actually saw. `DrawCard` shows its skeleton only on first load, never on
+the five-second refetch, because swapping a live card out repeatedly flickers.
+`/verify/[roundId]` gained the `loading.tsx` it never had.
+
+**Calmer entrance.** `PageTransition` runs 0.8s with a smaller lift, and
+`route-loading-sweep` slowed to 1.7s. New `ContentFade` in
+`components/motion/page-transition.tsx` fades a resolved subtree in where a
+skeleton just was, so the swap is not a single-frame pop. All of it stays behind
+`useReducedMotion`.
+
+Verified with web typecheck, ESLint, `next typegen`, and `git diff --check`.
+`next build` was not run locally, per the standing rule.
+
+Still outstanding, deliberately not built: picking a past round on `/app/prizes`
+and checking whether that specific round was won. `_claimable` is a single
+running encrypted total and `sweepTicket` credits it for every participant with
+no per-user event, so no current state or log answers "did I win round 7". The
+three options are a per-round encrypted credit mapping (needs a redeploy, adds a
+storage write and grant per ticket per sweep against the HCU budget), a
+frontend-only handle delta across the round's sweep blocks (no redeploy, but
+needs archive `eth_call` depth and silently misreports if a claim interleaves),
+or an on-demand encrypted range check (needs a redeploy plus a transaction and a
+second decrypt per check). Awaiting a decision; do not ship the delta approach
+without saying out loud that an interleaved claim breaks it.
+
+
 Build `/verify/[roundId]` from the public draw event trail, then add `/app/prizes` with the authenticated private claim/decryption flow and distinct rollover presentation. Do not relabel landing-page illustrative draw data as live until the keeper completes at least one full real Sepolia round.
 
 ---

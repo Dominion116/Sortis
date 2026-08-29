@@ -330,6 +330,53 @@ html {
   padding-block: 4rem;
 }
 
+/*
+ * The single container for every route under `app/(app)`.
+ *
+ * App pages previously mixed `.container` (padding based, used by the layout
+ * for the network banner) with per-page `.section-shell` (width-reduction
+ * based). The two resolve to slightly different mobile gutters, so the banner
+ * and the page content below it did not line up. `.app-shell` is applied once
+ * in the app layout and wraps both, so there is exactly one horizontal gutter
+ * scale and one vertical rhythm across the app half of the site.
+ *
+ * Do not add `.section-shell`, `.container`, or a page-specific `max-w-*` to an
+ * app route: that is the drift this replaced.
+ */
+.app-shell {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  padding-block: 2rem 4rem;
+}
+
+/* Vertical rhythm between the stacked blocks of an app page. Pages used a mix
+ * of `space-y-8` and `space-y-10`; this makes the spacing one decision. */
+.app-stack > * + * {
+  margin-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .app-shell {
+    padding-inline: 1.5rem;
+    padding-block: 2.5rem 5rem;
+  }
+
+  .app-stack > * + * {
+    margin-top: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-shell {
+    padding-inline: 2rem;
+    padding-block: 3rem 6rem;
+  }
+}
+
+
+
 .motion-card {
   transition: border-color 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
 }
@@ -362,7 +409,7 @@ html {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.24), transparent);
-  animation: route-loading-sweep 1.15s ease-in-out infinite;
+  animation: route-loading-sweep 1.7s ease-in-out infinite;
 }
 
 .nav-route-progress::after {
